@@ -1,6 +1,19 @@
-import React from "react";
+// DeviceCard.js
+import React, { useState } from "react";
 
-function DeviceCard({ device, onDelete, onEdit }) {
+function DeviceCard({ device, onDelete, onUpdate }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    kWh: device.kWh,
+    STATUS: device.STATUS,
+    ADDRESS: device.ADDRESS,
+  });
+
+  const handleSave = () => {
+    onUpdate({ ...device, ...editData });
+    setIsEditing(false);
+  };
+
   return (
     <div
       style={{
@@ -13,53 +26,61 @@ function DeviceCard({ device, onDelete, onEdit }) {
         margin: 10,
       }}
     >
-      {" "}
-      <h4>{device.name}</h4>{" "}
-      <p>
-        <strong>Device ID:</strong> {device.device_id}
-      </p>{" "}
-      <p>
-        <strong>User ID:</strong> {device.user_id}
-      </p>{" "}
-      <p>
-        <strong>Điện tiêu thụ:</strong> {device.kWh} kWh
-      </p>{" "}
-      <p>
-        <strong>Thời gian sử dụng:</strong> {device.time}
-      </p>{" "}
-      <p>
-        <strong>Địa chỉ:</strong> {device.address}
-      </p>{" "}
-      <p>
-        <strong>Status:</strong> {device.status}
-      </p>
-      ```
-      {/* Nút xóa */}
-      <button
-        onClick={onDelete}
+      <h4>{device.DEVICE_NAME || device.name}</h4>
+
+      {!isEditing ? (
+        <>
+          <p>kWh: {device.kWh}</p>
+          <p>Status: {device.STATUS}</p>
+          <p>Address: {device.ADDRESS}</p>
+        </>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <input
+            type="number"
+            value={editData.kWh}
+            onChange={(e) =>
+              setEditData({ ...editData, kWh: Number(e.target.value) })
+            }
+          />
+          <input
+            type="text"
+            value={editData.STATUS}
+            onChange={(e) =>
+              setEditData({ ...editData, STATUS: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            value={editData.ADDRESS}
+            onChange={(e) =>
+              setEditData({ ...editData, ADDRESS: e.target.value })
+            }
+          />
+        </div>
+      )}
+
+      <div
         style={{
           position: "absolute",
           top: 5,
           right: 5,
-          display: "inline-block",
-          cursor: "pointer",
+          display: "flex",
+          gap: 5,
         }}
       >
-        ❌
-      </button>
-      {/* Nút sửa */}
-      <button
-        onClick={onEdit}
-        style={{
-          position: "absolute",
-          top: 5,
-          right: 35,
-          display: "inline-block",
-          cursor: "pointer",
-        }}
-      >
-        ✏️
-      </button>
+        {!isEditing ? (
+          <>
+            <button onClick={() => setIsEditing(true)}>✏️</button>
+            <button onClick={onDelete}>❌</button>
+          </>
+        ) : (
+          <>
+            <button onClick={handleSave}>💾</button>
+            <button onClick={() => setIsEditing(false)}>❌</button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

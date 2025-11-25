@@ -8,7 +8,7 @@ function Login({ onLogin }) {
     e.preventDefault();
     if (username && password) {
       // Giả lập USER_ID = 300000
-      onLogin({ USER_ID: 300000, USER_NAME: username });
+      onLogin({ USER_ID: 300000, USER_NAME: "admin" });
     }
   };
 

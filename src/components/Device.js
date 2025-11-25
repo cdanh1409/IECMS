@@ -22,7 +22,8 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
     setDevices(coloredDevices);
 
     if (onDevicesUpdate) onDevicesUpdate(coloredDevices);
-  }, [initialDevices, onDevicesUpdate]); // ✔ thêm dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // bỏ dependency → chạy 1 lần
 
   // ===========================
   // THÊM THIẾT BỊ
