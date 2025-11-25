@@ -1,0 +1,186 @@
+/* Reset cơ bản */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: #111827;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+  transition: width 0.3s;
+}
+
+.sidebar button {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  padding: 15px 25px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.sidebar button:hover {
+  background-color: #1f2937;
+  color: #fff;
+}
+
+.sidebar button.active {
+  border-left: 4px solid #3b82f6;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 15px 25px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  gap: 15px;
+}
+
+.header button {
+  background: #983e3e;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.header button:hover {
+  background: #2563eb;
+}
+
+.header span {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+}
+
+/* Device Grid */
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Device Card */
+.device-card {
+  padding: 15px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.device-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.device-card h4 {
+  margin-bottom: 8px;
+  color: #f9f9f9;
+}
+
+.device-card p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+/* Xóa button hover */
+.device-card button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: none;
+  background: #ef4444;
+  border: none;
+  color: #fff;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.device-card:hover button {
+  display: inline-block;
+}
+
+/* Add Device Button */
+.add-device-btn {
+  background: #10b981;
+  border: none;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 20px;
+  transition: 0.2s;
+}
+
+.add-device-btn:hover {
+  background: #059669;
+}
+
+/* Charts container */
+.dashboard-charts {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  padding: 20px;
+}
+
+.chart-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  flex: 1 1 400px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+h4 {
+  color: #111827;
+  margin-bottom: 10px;
+}

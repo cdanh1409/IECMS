@@ -1,0 +1,8 @@
+.device {
+  /* Styles for device */
+}
+
+.deviceList {
+  display: flex;
+  flex-wrap: wrap;
+}
