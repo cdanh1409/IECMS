@@ -33,9 +33,9 @@ function Dashboard({ devices = [] }) {
       {
         label: "kWh",
         data: devices.map((d) => Number(d.kWh || 0)),
-        backgroundColor: devices.map((d) => d.color || "#4caf50"),
+        backgroundColor: devices.map((d) => d.color || "#af4c8bff"),
         borderColor: "#333",
-        borderWidth: 1,
+        borderWidth: 2,
       },
     ],
   };
@@ -47,7 +47,7 @@ function Dashboard({ devices = [] }) {
         data: devices.map((d) => Number(d.kWh || 0)),
         backgroundColor: devices.map((d) => d.color || "#4caf50"),
         borderColor: "#fff",
-        borderWidth: 2,
+        borderWidth: 4,
       },
     ],
   };
@@ -113,6 +113,7 @@ function Dashboard({ devices = [] }) {
 
       {/* Biểu đồ */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "24px" }}>
+        {/* Bar Chart */}
         <div
           style={{
             flex: "1 1 400px",
@@ -126,6 +127,8 @@ function Dashboard({ devices = [] }) {
           <h4>Biểu đồ cột</h4>
           <Bar data={chartData} options={options} />
         </div>
+
+        {/* Line Chart */}
         <div
           style={{
             flex: "1 1 400px",
@@ -139,18 +142,29 @@ function Dashboard({ devices = [] }) {
           <h4>Biểu đồ đường</h4>
           <Line data={chartData} options={options} />
         </div>
+
+        {/* Pie Chart */}
         <div
           style={{
-            flex: "1 1 400px",
+            flex: "1 1 300px",
             height: "300px",
             backgroundColor: "#fff",
             borderRadius: "12px",
             padding: "16px",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
           <h4>Biểu đồ tròn</h4>
-          <Pie data={pieData} options={options} />
+          <div style={{ width: "80%", height: "80%" }}>
+            <Pie
+              data={pieData}
+              options={{ ...options, maintainAspectRatio: true }}
+            />
+          </div>
         </div>
       </div>
     </div>

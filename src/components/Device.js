@@ -1,3 +1,4 @@
+// Device.js
 import React, { useState, useEffect } from "react";
 
 const addresses = ["Phòng khách", "Phòng ngủ", "Nhà bếp", "Phòng làm việc"];
@@ -7,25 +8,30 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
 
   const [form, setForm] = useState({
     DEVICE_NAME: "",
-    kWh: "",
     ADDRESS: addresses[0],
     STATUS: "On",
-    CREATE_AT: "",
   });
 
-  // Load devices ban đầu, gán màu nếu chưa có
+  // Load thiết bị ban đầu (CHẠY MỘT LẦN)
   useEffect(() => {
     const coloredDevices = initialDevices.map((d) => ({
       ...d,
       color: d.color || "#" + Math.floor(Math.random() * 16777215).toString(16),
     }));
-    setDevices(coloredDevices);
-    if (onDevicesUpdate) onDevicesUpdate(coloredDevices);
-  }, [initialDevices, onDevicesUpdate]);
 
+    setDevices(coloredDevices);
+
+    if (onDevicesUpdate) onDevicesUpdate(coloredDevices);
+  }, [initialDevices, onDevicesUpdate]); // ✔ thêm dependency
+
+  // ===========================
+  // THÊM THIẾT BỊ
+  // ===========================
   const handleAdd = () => {
-    if (!form.DEVICE_NAME || !form.kWh || !form.CREATE_AT)
-      return alert("Nhập Tên thiết bị");
+    if (!form.DEVICE_NAME.trim()) {
+      alert("Nhập Tên thiết bị");
+      return;
+    }
 
     const newDevice = {
       DEVICE_ID: devices.length + 1,
@@ -33,34 +39,35 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
       DEVICE_NAME: form.DEVICE_NAME,
       ADDRESS: form.ADDRESS,
       STATUS: form.STATUS,
-      //kWh: Number(form.kWh),
-      //CREATE_AT: form.CREATE_AT,
       color: "#" + Math.floor(Math.random() * 16777215).toString(16),
     };
 
     const updatedDevices = [...devices, newDevice];
     setDevices(updatedDevices);
+
     if (onDevicesUpdate) onDevicesUpdate(updatedDevices);
 
+    // Reset form
     setForm({
       DEVICE_NAME: "",
-      //kWh: "",
       ADDRESS: addresses[0],
       STATUS: "On",
-      //CREATE_AT: "",
     });
   };
 
+  // ===========================
+  // JSX RENDER
+  // ===========================
   return (
     <div
       style={{
+        padding: "16px",
         display: "flex",
         flexDirection: "column",
         gap: "24px",
-        padding: "16px",
       }}
     >
-      {/* Form thêm thiết bị */}
+      {/* FORM THÊM THIẾT BỊ */}
       <div
         style={{
           backgroundColor: "#fff",
@@ -70,8 +77,9 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
           maxWidth: "2000px",
         }}
       >
-        {" "}
         <h3>Thêm thiết bị mới</h3>
+
+        {/* Tên thiết bị */}
         <input
           type="text"
           placeholder="Tên thiết bị"
@@ -85,32 +93,8 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
             border: "1px solid #ccc",
           }}
         />
-        {/* <input
-          type="number"
-          placeholder="kWh"
-          value={form.kWh}
-          onChange={(e) => setForm({ ...form, kWh: e.target.value })}
-          style={{
-            width: "100%",
-            marginBottom: "12px",
-            padding: "8px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-          }}
-        /> */}
-        {/* <input
-          type="text"
-          placeholder="Ngày (YYYY-MM-DD)"
-          value={form.CREATE_AT}
-          onChange={(e) => setForm({ ...form, CREATE_AT: e.target.value })}
-          style={{
-            width: "100%",
-            marginBottom: "12px",
-            padding: "8px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-          }}
-        /> */}
+
+        {/* Địa chỉ */}
         <select
           value={form.ADDRESS}
           onChange={(e) => setForm({ ...form, ADDRESS: e.target.value })}
@@ -123,11 +107,11 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
           }}
         >
           {addresses.map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}{" "}
+            <option key={a}>{a}</option>
+          ))}
         </select>
+
+        {/* Trạng thái */}
         <select
           value={form.STATUS}
           onChange={(e) => setForm({ ...form, STATUS: e.target.value })}
@@ -139,9 +123,10 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
             border: "1px solid #ccc",
           }}
         >
-          {" "}
-          <option>On</option> <option>Off</option>{" "}
+          <option>On</option>
+          <option>Off</option>
         </select>
+
         <button
           onClick={handleAdd}
           style={{
@@ -155,11 +140,11 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
             cursor: "pointer",
           }}
         >
-          Thêm thiết bị{" "}
-        </button>{" "}
+          Thêm thiết bị
+        </button>
       </div>
 
-      {/* Danh sách thiết bị */}
+      {/* DANH SÁCH THIẾT BỊ */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
         {devices.map((d) => (
           <div
@@ -179,23 +164,19 @@ function Device({ user, devices: initialDevices = [], onDevicesUpdate }) {
             onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
           >
             <h4>{d.DEVICE_NAME}</h4>
-            {/* <p>
-              <strong>kWh:</strong> {d.kWh}
-            </p> */}
             <p>
               <strong>Địa chỉ:</strong> {d.ADDRESS}
             </p>
             <p>
               <strong>Status:</strong>{" "}
               <span
-                style={{ color: d.STATUS === "On" ? "#4caf50" : "#f44336" }}
+                style={{
+                  color: d.STATUS === "On" ? "#4caf50" : "#f44336",
+                }}
               >
                 {d.STATUS}
               </span>
             </p>
-            {/* <p>
-              <strong>Ngày:</strong> {d.CREATE_AT}
-            </p> */}
           </div>
         ))}
       </div>
