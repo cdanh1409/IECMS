@@ -1,0 +1,105 @@
+.user-info-container {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 25px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.user-info-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #271112;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.user-info-container label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.user-info-container input,
+.user-info-container select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+
+.user-info-container input:focus,
+.user-info-container select:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.address-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.address-row select {
+  flex: 1 1 100%;
+}
+
+@media (min-width: 480px) {
+  .address-row select {
+    flex: 1;
+  }
+}
+
+.user-info-container .error {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: -6px;
+  margin-bottom: 6px;
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.button-row button {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+}
+
+.button-row .save-btn {
+  background-color: #10b981;
+  color: #fff;
+}
+
+.button-row .save-btn:hover {
+  background-color: #059669;
+}
+
+.button-row .cancel-btn {
+  background-color: #f87171;
+  color: #fff;
+}
+
+.button-row .cancel-btn:hover {
+  background-color: #ef4444;
+}
+
+.user-info-container input[readonly] {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}

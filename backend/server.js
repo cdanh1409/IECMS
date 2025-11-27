@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const sql = require("mssql");
 const cors = require("cors");
@@ -32,6 +33,41 @@ const poolPromise = new sql.ConnectionPool(dbConfig)
 // Health check
 app.get("/", (req, res) => res.send("Server is running"));
 
+// ----------------- LOGIN -----------------
+// ----------------- LOGIN ROUTE -----------------
+app.post("/api/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Thiếu username hoặc password" });
+  }
+
+  try {
+    const pool = await poolPromise;
+    const result = await pool
+      .request()
+      .input("USERNAME", sql.NVarChar, username)
+      .input("PASSWORD", sql.NVarChar, password).query(`
+        SELECT USER_ID, USER_NAME, ROLE
+        FROM ACCOUNT
+        WHERE USER_NAME = @USERNAME AND PASSWORD = @PASSWORD
+      `);
+
+    if (result.recordset.length === 0) {
+      return res
+        .status(401)
+        .json({ error: "Username hoặc password không đúng" });
+    }
+
+    res.json(result.recordset[0]);
+  } catch (err) {
+    console.error("❌ Error login:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ----------------- DEVICE ROUTES -----------------
+
 // GET devices by user
 app.get("/api/devices/user/:USER_ID", async (req, res) => {
   const { USER_ID } = req.params;
@@ -61,10 +97,9 @@ app.get("/api/devices/user/:USER_ID", async (req, res) => {
   }
 });
 
-// POST /api/devices -> thêm device mới
+// POST add new device
 app.post("/api/devices", async (req, res) => {
   const { DEVICE_NAME, ADDRESS, STATUS, USER_ID, kWh } = req.body;
-
   if (!DEVICE_NAME || !ADDRESS || !STATUS || !USER_ID) {
     return res.status(400).json({ error: "Thiếu dữ liệu" });
   }
@@ -90,7 +125,7 @@ app.post("/api/devices", async (req, res) => {
   }
 });
 
-// PUT /api/devices/:DEVICE_ID -> update kWh, Status, Address
+// PUT update device
 app.put("/api/devices/:DEVICE_ID", async (req, res) => {
   const { DEVICE_ID } = req.params;
   const { kWh, STATUS, ADDRESS } = req.body;
@@ -121,7 +156,7 @@ app.put("/api/devices/:DEVICE_ID", async (req, res) => {
   }
 });
 
-// DELETE /api/devices/:DEVICE_ID -> xóa device
+// DELETE device
 app.delete("/api/devices/:DEVICE_ID", async (req, res) => {
   const { DEVICE_ID } = req.params;
   try {
@@ -134,6 +169,88 @@ app.delete("/api/devices/:DEVICE_ID", async (req, res) => {
     res.json({ success: result.rowsAffected[0] > 0 });
   } catch (err) {
     console.error("❌ Error deleting device:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ----------------- USER ROUTES (USER_INFO) -----------------
+
+// GET user by USER_ID
+app.get("/api/user/:USER_ID", async (req, res) => {
+  const { USER_ID } = req.params;
+  try {
+    const pool = await poolPromise;
+    const result = await pool
+      .request()
+      .input("USER_ID", sql.Int, Number(USER_ID)).query(`
+        SELECT TOP (1000)
+          [USER_ID],
+          [FULL_NAME],
+          [EMAIL],
+          [PHONE],
+          [ADDRESS],
+          [CREATED_AT],
+          [UPDATED_AT]
+        FROM [IECMS].[dbo].[USER_INFO]
+        WHERE USER_ID = @USER_ID
+      `);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(result.recordset[0]);
+  } catch (err) {
+    console.error("❌ Error fetching user:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT update user
+app.put("/api/user/:USER_ID", async (req, res) => {
+  const { USER_ID } = req.params;
+  const { FULL_NAME, EMAIL, PHONE, ADDRESS } = req.body;
+
+  if (!FULL_NAME || !EMAIL || !PHONE || !ADDRESS) {
+    return res.status(400).json({ error: "Thiếu dữ liệu cập nhật" });
+  }
+
+  try {
+    const pool = await poolPromise;
+    const result = await pool
+      .request()
+      .input("USER_ID", sql.Int, Number(USER_ID))
+      .input("FULL_NAME", sql.NVarChar, FULL_NAME)
+      .input("EMAIL", sql.NVarChar, EMAIL)
+      .input("PHONE", sql.NVarChar, PHONE)
+      .input("ADDRESS", sql.NVarChar, ADDRESS).query(`
+        UPDATE [IECMS].[dbo].[USER_INFO]
+        SET FULL_NAME = @FULL_NAME,
+            EMAIL = @EMAIL,
+            PHONE = @PHONE,
+            ADDRESS = @ADDRESS,
+            UPDATED_AT = GETDATE()
+        WHERE USER_ID = @USER_ID;
+
+        SELECT TOP (1000)
+          [USER_ID],
+          [FULL_NAME],
+          [EMAIL],
+          [PHONE],
+          [ADDRESS],
+          [CREATED_AT],
+          [UPDATED_AT]
+        FROM [IECMS].[dbo].[USER_INFO]
+        WHERE USER_ID = @USER_ID
+      `);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(result.recordset[0]);
+  } catch (err) {
+    console.error("❌ Error updating user:", err);
     res.status(500).json({ error: err.message });
   }
 });

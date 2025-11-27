@@ -1,0 +1,16 @@
+[
+  {
+    "label": "Hà Nội",
+    "districts": [
+      { "label": "Ba Đình", "wards": ["Phường 1", "Phường 2"] },
+      { "label": "Hoàn Kiếm", "wards": ["Phường 3", "Phường 4"] }
+    ]
+  },
+  {
+    "label": "Hồ Chí Minh",
+    "districts": [
+      { "label": "Quận 1", "wards": ["Phường Bến Nghé", "Phường Bến Thành"] },
+      { "label": "Quận 3", "wards": ["Phường Võ Thị Sáu", "Phường 6"] }
+    ]
+  }
+]

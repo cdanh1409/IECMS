@@ -59,38 +59,50 @@ function Dashboard({
   const [localCustomRange, setLocalCustomRange] = useState(customRange);
   const intervalRef = useRef(null);
 
-  // Load default today range
+  // Load default today range on mount
   useEffect(() => {
     const today = new Date();
     setLocalCustomRange([today, today]);
   }, []);
 
-  // Stable fetchDevices
+  // Stable fetch function
   const fetchDevices = useCallback(async () => {
     if (!user?.USER_ID) return;
-    const data = await fetchData(user.USER_ID);
-    setDevices(data);
+    try {
+      const data = await fetchData(user.USER_ID);
+      // Assign random color if not exists
+      const colored = data.map((d) => ({
+        ...d,
+        color:
+          d.color || "#" + Math.floor(Math.random() * 16777215).toString(16),
+      }));
+      setDevices(colored);
+    } catch (err) {
+      console.error("❌ Dashboard fetch error:", err);
+    }
   }, [user, fetchData, setDevices]);
 
   // Fetch & interval
   useEffect(() => {
-    let isFetching = false;
+    if (!user?.USER_ID) return; // only run if user exists
 
     const fetchLoop = async () => {
-      if (isFetching) return;
-      isFetching = true;
       await fetchDevices();
-      isFetching = false;
     };
 
+    // Initial fetch
     fetchLoop();
+
+    // Clear previous interval if exists
     if (intervalRef.current) clearInterval(intervalRef.current);
+
+    // Set interval
     intervalRef.current = setInterval(fetchLoop, refreshInterval);
 
     return () => clearInterval(intervalRef.current);
-  }, [fetchDevices, refreshInterval]);
+  }, [user, fetchDevices, refreshInterval]);
 
-  // Filtered devices
+  // Filter devices by date
   const filteredDevices = useMemo(() => {
     return devices.filter((d) => {
       const deviceDate = new Date(d.lastUpdate || d.CREATE_AT || new Date());
@@ -101,11 +113,13 @@ function Dashboard({
 
       if (timeRange === "today")
         return deviceDate.getTime() === today.getTime();
+
       if (timeRange === "yesterday") {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         return deviceDate.getTime() === yesterday.getTime();
       }
+
       if (
         timeRange === "custom" &&
         localCustomRange[0] &&
@@ -117,13 +131,15 @@ function Dashboard({
         end.setHours(23, 59, 59, 999);
         return deviceDate >= start && deviceDate <= end;
       }
+
       return true;
     });
   }, [devices, timeRange, localCustomRange]);
 
-  const totalKwh = useMemo(() => {
-    return filteredDevices.reduce((sum, d) => sum + (d.kWh || 0), 0);
-  }, [filteredDevices]);
+  const totalKwh = useMemo(
+    () => filteredDevices.reduce((sum, d) => sum + (d.kWh || 0), 0),
+    [filteredDevices]
+  );
 
   // Chart data
   const chartData = useMemo(
@@ -171,6 +187,7 @@ function Dashboard({
             <option value="custom">Tùy chỉnh</option>
           </select>
         </div>
+
         {timeRange === "custom" && (
           <DatePicker
             selectsRange
@@ -183,6 +200,7 @@ function Dashboard({
             isClearable
           />
         )}
+
         <div>
           <label>Refresh: </label>
           <select
@@ -201,6 +219,7 @@ function Dashboard({
             ))}
           </select>
         </div>
+
         <button onClick={fetchDevices}>Refresh Now</button>
       </div>
 
@@ -235,6 +254,7 @@ function Dashboard({
           <h4>Biểu đồ cột</h4>
           <Bar data={chartData} options={{ responsive: true }} />
         </div>
+
         <div
           style={{
             flex: "1 1 400px",
@@ -248,6 +268,7 @@ function Dashboard({
           <h4>Biểu đồ đường</h4>
           <Line data={chartData} options={{ responsive: true }} />
         </div>
+
         <div
           style={{
             flex: "1 1 300px",

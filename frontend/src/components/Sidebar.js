@@ -1,3 +1,4 @@
+// Sidebar.js
 import React from "react";
 
 function Sidebar({ activeMenu, setActiveMenu, user }) {
@@ -16,7 +17,13 @@ function Sidebar({ activeMenu, setActiveMenu, user }) {
     >
       {/* User info */}
       <div
-        style={{ display: "flex", alignItems: "center", marginBottom: "32px" }}
+        onClick={() => setActiveMenu("UserInfo")} // click avatar mở UserInfo
+        style={{
+          display: "flex",
+          alignItems: "center",
+          marginBottom: "32px",
+          cursor: "pointer",
+        }}
       >
         <div
           style={{
@@ -33,12 +40,12 @@ function Sidebar({ activeMenu, setActiveMenu, user }) {
             color: "#fff",
           }}
         >
-          {user.USER_NAME.charAt(0)}{" "}
-        </div>{" "}
+          {user.USER_NAME.charAt(0)}
+        </div>
         <div>
           <div style={{ fontWeight: "bold" }}>{user.USER_NAME}</div>
-          <div style={{ fontSize: "12px", color: "#aaa" }}>Online</div>{" "}
-        </div>{" "}
+          <div style={{ fontSize: "12px", color: "#aaa" }}>Online</div>
+        </div>
       </div>
 
       {/* Menu */}
@@ -50,7 +57,8 @@ function Sidebar({ activeMenu, setActiveMenu, user }) {
             style={{
               padding: "12px",
               borderRadius: "6px",
-              backgroundColor: activeMenu === item ? "#00ad17ff" : "transparent",
+              backgroundColor:
+                activeMenu === item ? "#00ad17ff" : "transparent",
               cursor: "pointer",
               marginBottom: "8px",
             }}
