@@ -1,6 +1,8 @@
+// Login.js
 import React, { useState } from "react";
 import axios from "axios";
 import "../styles/Login.css"; // import file CSS
+import { API_URL } from "../config";
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -9,7 +11,6 @@ function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!username || !password) {
       alert("Vui lòng điền username và password");
       return;
@@ -17,13 +18,14 @@ function Login({ onLogin }) {
 
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:5000/api/login", {
+      const res = await axios.post(`${API_URL}/api/login`, {
         username,
         password,
       });
-
       onLogin(res.data);
-      alert(`Đăng nhập thành công! Chào ${res.data.FULL_NAME}`);
+      alert(
+        `Đăng nhập thành công! Chào ${res.data.FULL_NAME || res.data.USER_NAME}`
+      );
     } catch (err) {
       console.error("Login error:", err);
       alert(err.response?.data?.error || "Có lỗi xảy ra khi đăng nhập");

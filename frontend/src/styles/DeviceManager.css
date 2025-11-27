@@ -99,3 +99,9 @@
 .status-off {
   color: #f44336;
 }
+
+@media (max-width: 500px) {
+  .device-container {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,6 +1,7 @@
 // Setting.js
 import React, { useState } from "react";
 import "../styles/Setting.css";
+import { API_URL } from "../config";
 
 function Setting({ userId }) {
   const [form, setForm] = useState({
@@ -32,17 +33,14 @@ function Setting({ userId }) {
 
     try {
       setSaving(true);
-      const res = await fetch(
-        `http://localhost:5000/api/user/${userId}/change-password`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            currentPassword: form.currentPassword,
-            newPassword: form.newPassword,
-          }),
-        }
-      );
+      const res = await fetch(`${API_URL}/api/user/${userId}/change-password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: form.currentPassword,
+          newPassword: form.newPassword,
+        }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Đổi mật khẩu thất bại");
       alert("Mật khẩu đã được đổi thành công!");

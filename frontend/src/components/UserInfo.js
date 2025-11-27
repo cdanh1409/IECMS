@@ -1,253 +1,142 @@
 // UserInfo.js
 import React, { useState, useEffect } from "react";
-import "../styles/UserInfo.css";
-import vietNamAddress from "../data/vietNamAddress.json";
+import "../styles/Setting.css"; // Dùng lại CSS Setting cho form đẹp
+import { API_URL } from "../config";
 
 function UserInfo({ userId }) {
-  const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     FULL_NAME: "",
     EMAIL: "",
     PHONE: "",
-    houseNumber: "",
-    address: "",
+    ADDRESS: "",
   });
   const [errors, setErrors] = useState({});
-  const [selectedCity, setSelectedCity] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedWard, setSelectedWard] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
-  // --- Load user từ server ---
   useEffect(() => {
     if (!userId) return;
-    fetch(`http://localhost:5000/api/user/${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data) return;
-        setUser(data);
-        const addrParts = (data.ADDRESS || "").split(",").map((p) => p.trim());
-        setFormData({
+
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch(`${API_URL}/api/user/${userId}`);
+        const data = await res.json();
+        if (!res.ok)
+          throw new Error(data.error || "Không thể tải thông tin user");
+
+        setForm({
           FULL_NAME: data.FULL_NAME || "",
           EMAIL: data.EMAIL || "",
           PHONE: data.PHONE || "",
-          houseNumber: addrParts[0] || "",
-          address: data.ADDRESS || "",
+          ADDRESS: data.ADDRESS || "",
         });
-        setSelectedWard(addrParts[1] || "");
-        setSelectedDistrict(addrParts[2] || "");
-        setSelectedCity(addrParts[3] || "");
-      })
-      .catch((err) => console.error("❌ Lỗi load user:", err));
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "Lỗi khi load user");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, [userId]);
 
-  // --- Cập nhật địa chỉ khi chọn địa chỉ ---
-  useEffect(() => {
-    const parts = [
-      formData.houseNumber || "",
-      selectedWard || "",
-      selectedDistrict || "",
-      selectedCity || "",
-    ].filter(Boolean);
-    setFormData((prev) => ({ ...prev, address: parts.join(", ") }));
-  }, [formData.houseNumber, selectedCity, selectedDistrict, selectedWard]);
+  if (loading) return <div>Đang tải thông tin user...</div>;
+  if (error) return <div style={{ color: "red" }}>Lỗi: {error}</div>;
 
-  // --- Validation ---
   const validate = () => {
     const errs = {};
-    const fullName = (formData.FULL_NAME || "").trim();
-    const email = (formData.EMAIL || "").trim();
-    const phone = (formData.PHONE || "").trim();
-    const houseNumber = (formData.houseNumber || "").trim();
-
-    if (!fullName) errs.FULL_NAME = "Tên không được để trống";
-    if (!email) errs.EMAIL = "Email không được để trống";
-    else if (!/^\S+@\S+\.\S+$/.test(email)) errs.EMAIL = "Email không hợp lệ";
-    if (!phone) errs.PHONE = "SĐT không được để trống";
-    else if (!/^\d{9,11}$/.test(phone)) errs.PHONE = "SĐT không hợp lệ";
-    if (!houseNumber) errs.houseNumber = "Số nhà không được để trống";
-
+    if (!form.FULL_NAME.trim())
+      errs.FULL_NAME = "Họ và tên không được để trống";
+    if (!form.EMAIL.trim()) errs.EMAIL = "Email không được để trống";
+    if (!form.PHONE.trim()) errs.PHONE = "Số điện thoại không được để trống";
+    if (!form.ADDRESS.trim()) errs.ADDRESS = "Địa chỉ không được để trống";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // --- Submit form ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const payload = {
-      user_name: formData.FULL_NAME,
-      email: formData.EMAIL,
-      phone: formData.PHONE,
-      address: formData.address,
-    };
-    console.log("Payload gửi server:", payload);
-
     try {
-      const res = await fetch(`http://localhost:5000/api/user/${userId}`, {
+      setSaving(true);
+      setError(null);
+      const res = await fetch(`${API_URL}/api/user/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
-      console.log("Server response:", data);
-      if (res.ok) {
-        alert("Cập nhật thành công!");
-        setUser(data);
-      } else {
-        alert("Cập nhật thất bại: " + data.error);
-      }
+      if (!res.ok) throw new Error(data.error || "Cập nhật thất bại");
+      alert("Cập nhật thông tin thành công!");
     } catch (err) {
       console.error(err);
-      alert("Có lỗi xảy ra khi cập nhật user.");
+      setError(err.message);
+      alert(err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
-  // --- Lọc districts và wards ---
-  const districts = selectedCity
-    ? vietNamAddress.find((c) => c.label === selectedCity)?.districts || []
-    : [];
-  const wards = selectedDistrict
-    ? districts.find((d) => d.label === selectedDistrict)?.wards || []
-    : [];
-
-  if (!user) return <div>Đang tải thông tin user...</div>;
-
   return (
-    <div className="user-info-container">
+    <div className="setting-container">
       <h2>Thông tin User</h2>
       <form onSubmit={handleSubmit}>
         <label>
-          Tên đầy đủ (*)
-          <span className={`error ${errors.FULL_NAME ? "visible" : ""}`}>
-            {errors.FULL_NAME}
-          </span>
+          Họ và tên
+          {errors.FULL_NAME && (
+            <span className="error visible">{errors.FULL_NAME}</span>
+          )}
         </label>
         <input
           type="text"
-          value={formData.FULL_NAME || ""}
-          onChange={(e) =>
-            setFormData({ ...formData, FULL_NAME: e.target.value })
-          }
+          value={form.FULL_NAME}
+          onChange={(e) => setForm({ ...form, FULL_NAME: e.target.value })}
         />
 
         <label>
-          Email (*)
-          <span className={`error ${errors.EMAIL ? "visible" : ""}`}>
-            {errors.EMAIL}
-          </span>
+          Email
+          {errors.EMAIL && (
+            <span className="error visible">{errors.EMAIL}</span>
+          )}
         </label>
         <input
           type="email"
-          value={formData.EMAIL || ""}
-          onChange={(e) => setFormData({ ...formData, EMAIL: e.target.value })}
+          value={form.EMAIL}
+          onChange={(e) => setForm({ ...form, EMAIL: e.target.value })}
         />
 
         <label>
-          Số điện thoại (*)
-          <span className={`error ${errors.PHONE ? "visible" : ""}`}>
-            {errors.PHONE}
-          </span>
+          Số điện thoại
+          {errors.PHONE && (
+            <span className="error visible">{errors.PHONE}</span>
+          )}
         </label>
         <input
           type="text"
-          value={formData.PHONE || ""}
-          onChange={(e) => setFormData({ ...formData, PHONE: e.target.value })}
+          value={form.PHONE}
+          onChange={(e) => setForm({ ...form, PHONE: e.target.value })}
         />
-
-        <label>Chọn địa chỉ</label>
-        <div className="address-select-container">
-          <select
-            value={selectedCity || ""}
-            onChange={(e) => {
-              setSelectedCity(e.target.value);
-              setSelectedDistrict("");
-              setSelectedWard("");
-            }}
-          >
-            <option value="">--Chọn Thành phố--</option>
-            {vietNamAddress.map((c, idx) => (
-              <option key={`${c.label}-${idx}`} value={c.label}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={selectedDistrict || ""}
-            onChange={(e) => {
-              setSelectedDistrict(e.target.value);
-              setSelectedWard("");
-            }}
-            disabled={!selectedCity}
-          >
-            <option value="">--Chọn Quận/Huyện--</option>
-            {districts.map((d, idx) => (
-              <option key={`${d.label}-${idx}`} value={d.label}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={selectedWard || ""}
-            onChange={(e) => setSelectedWard(e.target.value)}
-            disabled={!selectedDistrict}
-          >
-            <option value="">--Chọn Phường/Xã--</option>
-            {wards.map((w, idx) => (
-              <option key={`${w}-${idx}`} value={w}>
-                {w}
-              </option>
-            ))}
-          </select>
-        </div>
 
         <label>
-          Số nhà (*)
-          <span className={`error ${errors.houseNumber ? "visible" : ""}`}>
-            {errors.houseNumber}
-          </span>
+          Địa chỉ
+          {errors.ADDRESS && (
+            <span className="error visible">{errors.ADDRESS}</span>
+          )}
         </label>
         <input
           type="text"
-          value={formData.houseNumber || ""}
-          placeholder="Nhập số nhà"
-          onChange={(e) =>
-            setFormData({ ...formData, houseNumber: e.target.value })
-          }
-        />
-
-        <label>Địa chỉ chi tiết</label>
-        <input
-          type="text"
-          value={formData.address || ""}
-          placeholder="Địa chỉ đầy đủ sẽ hiển thị ở đây"
-          readOnly
+          value={form.ADDRESS}
+          onChange={(e) => setForm({ ...form, ADDRESS: e.target.value })}
         />
 
         <div className="form-actions">
-          <button type="submit" className="save-btn">
-            Lưu
-          </button>
-          <button
-            type="button"
-            className="cancel-btn"
-            onClick={() => {
-              setFormData({
-                FULL_NAME: "",
-                EMAIL: "",
-                PHONE: "",
-                houseNumber: "",
-                address: "",
-              });
-              setSelectedCity("");
-              setSelectedDistrict("");
-              setSelectedWard("");
-              setErrors({});
-            }}
-          >
-            Hủy
+          <button type="submit" className="save-btn" disabled={saving}>
+            {saving ? "Đang cập nhật..." : "Cập nhật"}
           </button>
         </div>
       </form>

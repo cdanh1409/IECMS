@@ -8,6 +8,7 @@ import Setting from "./components/Setting";
 import Login from "./components/Login";
 import UserInfo from "./components/UserInfo";
 import "./styles/App.css";
+import { API_URL } from "./config";
 
 function App() {
   const [user, setUser] = useState(null); // { USER_ID, USER_NAME, ROLE }
@@ -29,9 +30,7 @@ function App() {
   const fetchDevicesFromAPI = async (userId) => {
     if (!userId) return [];
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/devices/user/${userId}`
-      );
+      const res = await fetch(`${API_URL}/api/devices/user/${userId}`);
       if (!res.ok)
         throw new Error(`Error fetching devices (status ${res.status})`);
       const data = await res.json();
