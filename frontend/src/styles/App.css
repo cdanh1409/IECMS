@@ -1,0 +1,153 @@
+/* ===== Reset cơ bản ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===== Body & Layout ===== */
+body {
+  background-color: #9d9da0;
+}
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f1f2f3;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+/* ===== Component-specific styles (tách riêng) ===== */
+/*
+.sidebar { ... }
+.header { ... }
+.dashboard-card { ... }
+.device-grid { ... }
+.device-card { ... }
+.add-device-btn { ... }
+.dashboard-charts { ... }
+.chart-box { ... }
+.user-info-container { ... }
+*/
+
+/* ===== Validation error messages ===== */
+.error {
+  color: #ef4444;
+  font-size: 12px;
+  min-height: 16px;
+  margin-bottom: 6px;
+  visibility: hidden;
+}
+
+.error.visible {
+  visibility: visible;
+}
+
+/* ===== Address selection container ===== */
+.address-select-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.address-select-container select {
+  flex: 1;
+}
+
+/* ===== Autocomplete dropdown ===== */
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-container input {
+  width: 100%;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+  border-radius: 0 0 8px 8px;
+}
+
+.autocomplete-list div {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.autocomplete-list div:hover {
+  background-color: #f3f4f6;
+}
+
+/* ===== Form action buttons ===== */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.form-actions button {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+}
+
+.form-actions .save-btn {
+  background-color: #10b981;
+  color: #fff;
+}
+
+.form-actions .save-btn:hover {
+  background-color: #059669;
+}
+
+.form-actions .cancel-btn {
+  background-color: #f87171;
+  color: #fff;
+}
+
+.form-actions .cancel-btn:hover {
+  background-color: #ef4444;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  /*
+  .sidebar {
+    width: 200px;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  */
+}
+
+@media (max-width: 600px) {
+  .address-select-container {
+    flex-direction: column;
+  }
+  .address-select-container select {
+    width: 100%;
+  }
+}

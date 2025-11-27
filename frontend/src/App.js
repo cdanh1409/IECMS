@@ -7,14 +7,12 @@ import DeviceManager from "./components/DeviceManager";
 import Setting from "./components/Setting";
 import Login from "./components/Login";
 import UserInfo from "./components/UserInfo";
-import "./index.css"; // import CSS toàn cục
-import "./App.css";
+import "./styles/App.css";
 
 function App() {
-  const [user, setUser] = useState(null); // user object { USER_ID, FULL_NAME, ... }
+  const [user, setUser] = useState(null); // { USER_ID, USER_NAME, ROLE }
   const [devices, setDevices] = useState([]);
   const [activeMenu, setActiveMenu] = useState("Dashboard");
-
   const [dashboardState, setDashboardState] = useState({
     timeRange: "today",
     customRange: [null, null],
@@ -27,8 +25,9 @@ function App() {
     setActiveMenu("Dashboard");
   };
 
-  // Fetch devices for a user
+  // Fetch devices by user ID
   const fetchDevicesFromAPI = async (userId) => {
+    if (!userId) return [];
     try {
       const res = await fetch(
         `http://localhost:5000/api/devices/user/${userId}`
@@ -50,7 +49,7 @@ function App() {
     }
   };
 
-  // Determine which content to show
+  // Render content based on active menu
   let content;
   switch (activeMenu) {
     case "Dashboard":
@@ -75,10 +74,10 @@ function App() {
       );
       break;
     case "Setting":
-      content = <Setting />;
+      content = <Setting userId={user?.USER_ID} />;
       break;
     case "UserInfo":
-      content = <UserInfo userId={user?.USER_ID} />; // pass only USER_ID
+      content = <UserInfo userId={user?.USER_ID} />;
       break;
     default:
       content = (

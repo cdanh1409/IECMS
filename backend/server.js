@@ -34,7 +34,6 @@ const poolPromise = new sql.ConnectionPool(dbConfig)
 app.get("/", (req, res) => res.send("Server is running"));
 
 // ----------------- LOGIN -----------------
-// ----------------- LOGIN ROUTE -----------------
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -173,7 +172,7 @@ app.delete("/api/devices/:DEVICE_ID", async (req, res) => {
   }
 });
 
-// ----------------- USER ROUTES (USER_INFO) -----------------
+// ----------------- USER ROUTES -----------------
 
 // GET user by USER_ID
 app.get("/api/user/:USER_ID", async (req, res) => {
@@ -184,21 +183,20 @@ app.get("/api/user/:USER_ID", async (req, res) => {
       .request()
       .input("USER_ID", sql.Int, Number(USER_ID)).query(`
         SELECT TOP (1000)
-          [USER_ID],
-          [FULL_NAME],
-          [EMAIL],
-          [PHONE],
-          [ADDRESS],
-          [CREATED_AT],
-          [UPDATED_AT]
-        FROM [IECMS].[dbo].[USER_INFO]
+          USER_ID,
+          FULL_NAME,
+          EMAIL,
+          PHONE,
+          ADDRESS,
+          CREATED_AT,
+          UPDATED_AT
+        FROM USER_INFO
         WHERE USER_ID = @USER_ID
       `);
 
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
-
     res.json(result.recordset[0]);
   } catch (err) {
     console.error("❌ Error fetching user:", err);
@@ -206,7 +204,7 @@ app.get("/api/user/:USER_ID", async (req, res) => {
   }
 });
 
-// PUT update user
+// PUT update user info
 app.put("/api/user/:USER_ID", async (req, res) => {
   const { USER_ID } = req.params;
   const { FULL_NAME, EMAIL, PHONE, ADDRESS } = req.body;
@@ -224,7 +222,7 @@ app.put("/api/user/:USER_ID", async (req, res) => {
       .input("EMAIL", sql.NVarChar, EMAIL)
       .input("PHONE", sql.NVarChar, PHONE)
       .input("ADDRESS", sql.NVarChar, ADDRESS).query(`
-        UPDATE [IECMS].[dbo].[USER_INFO]
+        UPDATE USER_INFO
         SET FULL_NAME = @FULL_NAME,
             EMAIL = @EMAIL,
             PHONE = @PHONE,
@@ -232,25 +230,56 @@ app.put("/api/user/:USER_ID", async (req, res) => {
             UPDATED_AT = GETDATE()
         WHERE USER_ID = @USER_ID;
 
-        SELECT TOP (1000)
-          [USER_ID],
-          [FULL_NAME],
-          [EMAIL],
-          [PHONE],
-          [ADDRESS],
-          [CREATED_AT],
-          [UPDATED_AT]
-        FROM [IECMS].[dbo].[USER_INFO]
+        SELECT TOP (1000) *
+        FROM USER_INFO
         WHERE USER_ID = @USER_ID
       `);
-
-    if (result.recordset.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
 
     res.json(result.recordset[0]);
   } catch (err) {
     console.error("❌ Error updating user:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// NEW: PUT change password
+// PUT change user password
+app.put("/api/user/:USER_ID/change-password", async (req, res) => {
+  const { USER_ID } = req.params;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: "Thiếu dữ liệu" });
+  }
+
+  try {
+    const pool = await poolPromise;
+
+    // 1️⃣ Kiểm tra password hiện tại
+    const check = await pool
+      .request()
+      .input("USER_ID", sql.Int, Number(USER_ID))
+      .input("PASSWORD", sql.NVarChar, currentPassword)
+      .query(
+        "SELECT * FROM ACCOUNT WHERE USER_ID = @USER_ID AND PASSWORD = @PASSWORD"
+      );
+
+    if (check.recordset.length === 0) {
+      return res.status(400).json({ error: "Mật khẩu hiện tại không đúng" });
+    }
+
+    // 2️⃣ Cập nhật mật khẩu mới
+    await pool
+      .request()
+      .input("USER_ID", sql.Int, Number(USER_ID))
+      .input("NEW_PASSWORD", sql.NVarChar, newPassword)
+      .query(
+        "UPDATE ACCOUNT SET PASSWORD = @NEW_PASSWORD WHERE USER_ID = @USER_ID"
+      );
+
+    res.json({ success: true, message: "Đổi mật khẩu thành công" });
+  } catch (err) {
+    console.error("❌ Error changing password:", err);
     res.status(500).json({ error: err.message });
   }
 });

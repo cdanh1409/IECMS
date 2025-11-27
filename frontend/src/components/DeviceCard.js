@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "../styles/DeviceCard.css";
 
 function DeviceCard({ device, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -18,8 +19,8 @@ function DeviceCard({ device, onUpdate, onDelete }) {
           body: JSON.stringify(editData),
         }
       );
-      const updatedDevice = await res.json();
-      onUpdate(updatedDevice);
+      const updated = await res.json();
+      onUpdate(updated);
       setIsEditing(false);
     } catch (err) {
       console.error(err);
@@ -28,26 +29,17 @@ function DeviceCard({ device, onUpdate, onDelete }) {
   };
 
   return (
-    <div
-      style={{
-        padding: 15,
-        background: "#fff",
-        borderRadius: 8,
-        boxShadow: "0 0 5px rgba(0,0,0,0.1)",
-        width: 250,
-        margin: 10,
-        position: "relative",
-      }}
-    >
+    <div className="device-card">
       <h4>{device.DEVICE_NAME}</h4>
+
       {!isEditing ? (
-        <>
+        <div className="device-info">
           <p>kWh: {device.kWh}</p>
           <p>Status: {device.STATUS}</p>
           <p>Address: {device.ADDRESS}</p>
-        </>
+        </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div className="device-edit">
           <input
             type="number"
             value={editData.kWh}
@@ -66,6 +58,7 @@ function DeviceCard({ device, onUpdate, onDelete }) {
             <option value="On">On</option>
             <option value="Off">Off</option>
           </select>
+
           <input
             type="text"
             value={editData.ADDRESS}
@@ -75,15 +68,8 @@ function DeviceCard({ device, onUpdate, onDelete }) {
           />
         </div>
       )}
-      <div
-        style={{
-          position: "absolute",
-          top: 5,
-          right: 5,
-          display: "flex",
-          gap: 5,
-        }}
-      >
+
+      <div className="device-actions">
         {!isEditing ? (
           <>
             <button onClick={() => setIsEditing(true)}>✏️</button>

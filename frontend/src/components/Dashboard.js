@@ -1,4 +1,3 @@
-// Dashboard.js
 import React, {
   useState,
   useEffect,
@@ -8,7 +7,9 @@ import React, {
 } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import "../styles/Dashboard.css"; // ⬅️ mới
 import { Bar, Line, Pie } from "react-chartjs-2";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -59,18 +60,15 @@ function Dashboard({
   const [localCustomRange, setLocalCustomRange] = useState(customRange);
   const intervalRef = useRef(null);
 
-  // Load default today range on mount
   useEffect(() => {
     const today = new Date();
     setLocalCustomRange([today, today]);
   }, []);
 
-  // Stable fetch function
   const fetchDevices = useCallback(async () => {
     if (!user?.USER_ID) return;
     try {
       const data = await fetchData(user.USER_ID);
-      // Assign random color if not exists
       const colored = data.map((d) => ({
         ...d,
         color:
@@ -82,27 +80,20 @@ function Dashboard({
     }
   }, [user, fetchData, setDevices]);
 
-  // Fetch & interval
   useEffect(() => {
-    if (!user?.USER_ID) return; // only run if user exists
+    if (!user?.USER_ID) return;
 
     const fetchLoop = async () => {
       await fetchDevices();
     };
 
-    // Initial fetch
     fetchLoop();
-
-    // Clear previous interval if exists
     if (intervalRef.current) clearInterval(intervalRef.current);
-
-    // Set interval
     intervalRef.current = setInterval(fetchLoop, refreshInterval);
 
     return () => clearInterval(intervalRef.current);
   }, [user, fetchDevices, refreshInterval]);
 
-  // Filter devices by date
   const filteredDevices = useMemo(() => {
     return devices.filter((d) => {
       const deviceDate = new Date(d.lastUpdate || d.CREATE_AT || new Date());
@@ -115,9 +106,9 @@ function Dashboard({
         return deviceDate.getTime() === today.getTime();
 
       if (timeRange === "yesterday") {
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        return deviceDate.getTime() === yesterday.getTime();
+        const y = new Date(today);
+        y.setDate(y.getDate() - 1);
+        return deviceDate.getTime() === y.getTime();
       }
 
       if (
@@ -141,7 +132,6 @@ function Dashboard({
     [filteredDevices]
   );
 
-  // Chart data
   const chartData = useMemo(
     () => ({
       labels: filteredDevices.map((d) => d.DEVICE_NAME),
@@ -159,27 +149,15 @@ function Dashboard({
   );
 
   return (
-    <div
-      style={{ padding: 16, display: "flex", flexDirection: "column", gap: 24 }}
-    >
-      {/* Time & Refresh controls */}
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          flexWrap: "wrap",
-          alignItems: "center",
-        }}
-      >
+    <div className="dashboard">
+      {/* Controls */}
+      <div className="dashboard-controls">
         <div>
-          <label>Time: </label>
+          <label>Time:</label>
           <select
             value={timeRange}
             onChange={(e) =>
-              setDashboardState((prev) => ({
-                ...prev,
-                timeRange: e.target.value,
-              }))
+              setDashboardState((p) => ({ ...p, timeRange: e.target.value }))
             }
           >
             <option value="yesterday">Hôm qua</option>
@@ -193,21 +171,21 @@ function Dashboard({
             selectsRange
             startDate={localCustomRange[0]}
             endDate={localCustomRange[1]}
-            onChange={(update) => {
-              setLocalCustomRange(update);
-              setDashboardState((prev) => ({ ...prev, customRange: update }));
+            onChange={(range) => {
+              setLocalCustomRange(range);
+              setDashboardState((p) => ({ ...p, customRange: range }));
             }}
             isClearable
           />
         )}
 
         <div>
-          <label>Refresh: </label>
+          <label>Refresh:</label>
           <select
             value={refreshInterval}
             onChange={(e) =>
-              setDashboardState((prev) => ({
-                ...prev,
+              setDashboardState((p) => ({
+                ...p,
                 refreshInterval: Number(e.target.value),
               }))
             }
@@ -223,62 +201,25 @@ function Dashboard({
         <button onClick={fetchDevices}>Refresh Now</button>
       </div>
 
-      {/* Tổng kWh */}
-      <div
-        style={{
-          backgroundColor: "#fff",
-          padding: 16,
-          borderRadius: 12,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          minWidth: 200,
-        }}
-      >
+      {/* Tổng */}
+      <div className="dashboard-summary">
         <h4>Tổng năng lượng</h4>
-        <p style={{ fontSize: 24, fontWeight: "bold", margin: 0 }}>
-          {totalKwh} kWh
-        </p>
+        <p>{totalKwh} kWh</p>
       </div>
 
       {/* Charts */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
-        <div
-          style={{
-            flex: "1 1 400px",
-            height: 300,
-            backgroundColor: "#fff",
-            borderRadius: 12,
-            padding: 16,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}
-        >
+      <div className="dashboard-charts">
+        <div className="chart-card">
           <h4>Biểu đồ cột</h4>
           <Bar data={chartData} options={{ responsive: true }} />
         </div>
 
-        <div
-          style={{
-            flex: "1 1 400px",
-            height: 300,
-            backgroundColor: "#fff",
-            borderRadius: 12,
-            padding: 16,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}
-        >
+        <div className="chart-card">
           <h4>Biểu đồ đường</h4>
           <Line data={chartData} options={{ responsive: true }} />
         </div>
 
-        <div
-          style={{
-            flex: "1 1 300px",
-            height: 300,
-            backgroundColor: "#fff",
-            borderRadius: 12,
-            padding: 16,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}
-        >
+        <div className="chart-card small">
           <h4>Biểu đồ tròn</h4>
           <Pie data={chartData} options={{ responsive: true }} />
         </div>

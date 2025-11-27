@@ -1,10 +1,10 @@
 // UserInfo.js
 import React, { useState, useEffect } from "react";
-import "../UserInfo.css";
+import "../styles/UserInfo.css";
 import vietNamAddress from "../data/vietNamAddress.json";
 
 function UserInfo({ userId }) {
-  const [user, setUser] = useState(null); // dữ liệu user từ server
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     FULL_NAME: "",
     EMAIL: "",
@@ -23,8 +23,8 @@ function UserInfo({ userId }) {
     fetch(`http://localhost:5000/api/user/${userId}`)
       .then((res) => res.json())
       .then((data) => {
+        if (!data) return;
         setUser(data);
-        // parse địa chỉ thành houseNumber, ward, district, city nếu muốn
         const addrParts = (data.ADDRESS || "").split(",").map((p) => p.trim());
         setFormData({
           FULL_NAME: data.FULL_NAME || "",
@@ -43,10 +43,10 @@ function UserInfo({ userId }) {
   // --- Cập nhật địa chỉ khi chọn địa chỉ ---
   useEffect(() => {
     const parts = [
-      formData.houseNumber,
-      selectedWard,
-      selectedDistrict,
-      selectedCity,
+      formData.houseNumber || "",
+      selectedWard || "",
+      selectedDistrict || "",
+      selectedCity || "",
     ].filter(Boolean);
     setFormData((prev) => ({ ...prev, address: parts.join(", ") }));
   }, [formData.houseNumber, selectedCity, selectedDistrict, selectedWard]);
@@ -54,15 +54,17 @@ function UserInfo({ userId }) {
   // --- Validation ---
   const validate = () => {
     const errs = {};
-    if (!formData.FULL_NAME.trim()) errs.FULL_NAME = "Tên không được để trống";
-    if (!formData.EMAIL.trim()) errs.EMAIL = "Email không được để trống";
-    else if (!/^\S+@\S+\.\S+$/.test(formData.EMAIL))
-      errs.EMAIL = "Email không hợp lệ";
-    if (!formData.PHONE.trim()) errs.PHONE = "SĐT không được để trống";
-    else if (!/^\d{9,11}$/.test(formData.PHONE))
-      errs.PHONE = "SĐT không hợp lệ";
-    if (!formData.houseNumber.trim())
-      errs.houseNumber = "Số nhà không được để trống";
+    const fullName = (formData.FULL_NAME || "").trim();
+    const email = (formData.EMAIL || "").trim();
+    const phone = (formData.PHONE || "").trim();
+    const houseNumber = (formData.houseNumber || "").trim();
+
+    if (!fullName) errs.FULL_NAME = "Tên không được để trống";
+    if (!email) errs.EMAIL = "Email không được để trống";
+    else if (!/^\S+@\S+\.\S+$/.test(email)) errs.EMAIL = "Email không hợp lệ";
+    if (!phone) errs.PHONE = "SĐT không được để trống";
+    else if (!/^\d{9,11}$/.test(phone)) errs.PHONE = "SĐT không hợp lệ";
+    if (!houseNumber) errs.houseNumber = "Số nhà không được để trống";
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -73,25 +75,25 @@ function UserInfo({ userId }) {
     e.preventDefault();
     if (!validate()) return;
 
+    const payload = {
+      user_name: formData.FULL_NAME,
+      email: formData.EMAIL,
+      phone: formData.PHONE,
+      address: formData.address,
+    };
+    console.log("Payload gửi server:", payload);
+
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/user/${Number(userId)}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            FULL_NAME: formData.FULL_NAME,
-            EMAIL: formData.EMAIL,
-            PHONE: formData.PHONE,
-            ADDRESS: formData.address,
-          }),
-        }
-      );
+      const res = await fetch(`http://localhost:5000/api/user/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       const data = await res.json();
       console.log("Server response:", data);
       if (res.ok) {
         alert("Cập nhật thành công!");
-        setUser(data); // update lại state user
+        setUser(data);
       } else {
         alert("Cập nhật thất bại: " + data.error);
       }
@@ -123,7 +125,7 @@ function UserInfo({ userId }) {
         </label>
         <input
           type="text"
-          value={formData.FULL_NAME}
+          value={formData.FULL_NAME || ""}
           onChange={(e) =>
             setFormData({ ...formData, FULL_NAME: e.target.value })
           }
@@ -137,7 +139,7 @@ function UserInfo({ userId }) {
         </label>
         <input
           type="email"
-          value={formData.EMAIL}
+          value={formData.EMAIL || ""}
           onChange={(e) => setFormData({ ...formData, EMAIL: e.target.value })}
         />
 
@@ -149,14 +151,14 @@ function UserInfo({ userId }) {
         </label>
         <input
           type="text"
-          value={formData.PHONE}
+          value={formData.PHONE || ""}
           onChange={(e) => setFormData({ ...formData, PHONE: e.target.value })}
         />
 
         <label>Chọn địa chỉ</label>
         <div className="address-select-container">
           <select
-            value={selectedCity}
+            value={selectedCity || ""}
             onChange={(e) => {
               setSelectedCity(e.target.value);
               setSelectedDistrict("");
@@ -172,7 +174,7 @@ function UserInfo({ userId }) {
           </select>
 
           <select
-            value={selectedDistrict}
+            value={selectedDistrict || ""}
             onChange={(e) => {
               setSelectedDistrict(e.target.value);
               setSelectedWard("");
@@ -188,7 +190,7 @@ function UserInfo({ userId }) {
           </select>
 
           <select
-            value={selectedWard}
+            value={selectedWard || ""}
             onChange={(e) => setSelectedWard(e.target.value)}
             disabled={!selectedDistrict}
           >
@@ -209,7 +211,7 @@ function UserInfo({ userId }) {
         </label>
         <input
           type="text"
-          value={formData.houseNumber}
+          value={formData.houseNumber || ""}
           placeholder="Nhập số nhà"
           onChange={(e) =>
             setFormData({ ...formData, houseNumber: e.target.value })
@@ -219,7 +221,7 @@ function UserInfo({ userId }) {
         <label>Địa chỉ chi tiết</label>
         <input
           type="text"
-          value={formData.address}
+          value={formData.address || ""}
           placeholder="Địa chỉ đầy đủ sẽ hiển thị ở đây"
           readOnly
         />
@@ -232,22 +234,17 @@ function UserInfo({ userId }) {
             type="button"
             className="cancel-btn"
             onClick={() => {
-              // Reset chỉ phần địa chỉ
-              setFormData((prev) => ({
-                ...prev,
+              setFormData({
                 FULL_NAME: "",
                 EMAIL: "",
                 PHONE: "",
                 houseNumber: "",
                 address: "",
-              }));
+              });
               setSelectedCity("");
               setSelectedDistrict("");
               setSelectedWard("");
-              setErrors((prev) => ({
-                ...prev,
-                houseNumber: undefined, // xóa lỗi số nhà nếu có
-              }));
+              setErrors({});
             }}
           >
             Hủy

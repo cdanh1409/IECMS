@@ -1,50 +1,20 @@
-// Sidebar.js
 import React from "react";
+import "../styles/Sidebar.css";
 
 function Sidebar({ activeMenu, setActiveMenu, user }) {
   const menuItems = ["Dashboard", "Device", "Setting"];
 
+  const displayName = user?.FULL_NAME || user?.USER_NAME || "Guest";
+  const avatarLetter = displayName.charAt(0).toUpperCase();
+
   return (
-    <div
-      style={{
-        width: "220px",
-        minHeight: "100vh",
-        backgroundColor: "#000a2eff",
-        color: "#fff",
-        padding: "16px",
-        boxSizing: "border-box",
-      }}
-    >
+    <div className="sidebar">
       {/* User info */}
-      <div
-        onClick={() => setActiveMenu("UserInfo")} // click avatar mở UserInfo
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginBottom: "32px",
-          cursor: "pointer",
-        }}
-      >
-        <div
-          style={{
-            width: "50px",
-            height: "50px",
-            borderRadius: "50%",
-            backgroundColor: "#af814cff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: "bold",
-            fontSize: "18px",
-            marginRight: "12px",
-            color: "#fff",
-          }}
-        >
-          {user.USER_NAME.charAt(0)}
-        </div>
-        <div>
-          <div style={{ fontWeight: "bold" }}>{user.USER_NAME}</div>
-          <div style={{ fontSize: "12px", color: "#aaa" }}>Online</div>
+      <div className="sidebar-user" onClick={() => setActiveMenu("UserInfo")}>
+        <div className="sidebar-avatar">{avatarLetter}</div>
+        <div className="sidebar-user-info">
+          <div className="username">{displayName}</div>
+          <div className="status">Online</div>
         </div>
       </div>
 
@@ -54,14 +24,9 @@ function Sidebar({ activeMenu, setActiveMenu, user }) {
           <div
             key={item}
             onClick={() => setActiveMenu(item)}
-            style={{
-              padding: "12px",
-              borderRadius: "6px",
-              backgroundColor:
-                activeMenu === item ? "#00ad17ff" : "transparent",
-              cursor: "pointer",
-              marginBottom: "8px",
-            }}
+            className={`sidebar-menu-item ${
+              activeMenu === item ? "active" : ""
+            }`}
           >
             {item}
           </div>

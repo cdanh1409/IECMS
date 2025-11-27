@@ -12,6 +12,8 @@ import {
   Legend,
 } from "chart.js";
 
+import "../styles/Charts.css"; // ⬅️ import CSS
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -43,7 +45,13 @@ export function BarChart() {
       },
     ],
   };
-  return <Bar data={data} />;
+
+  return (
+    <div className="chart-container">
+      <div className="chart-title">Biểu đồ cột</div>
+      <Bar data={data} />
+    </div>
+  );
 }
 
 export function LineChart() {
@@ -59,5 +67,11 @@ export function LineChart() {
       },
     ],
   };
-  return <Line data={data} />;
+
+  return (
+    <div className="chart-container">
+      <div className="chart-title">Biểu đồ đường</div>
+      <Line data={data} />
+    </div>
+  );
 }

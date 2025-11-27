@@ -1,0 +1,45 @@
+/* Header.css */
+.header {
+  display: flex;
+  justify-content: space-between; /* hoặc flex-start */
+  align-items: center;
+  gap: 12px; /* khoảng cách giữa các item */
+  height: 60px;
+  padding: 0 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.header button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #425ab8;
+  color: white;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  margin-left: 10px; /* khoảng cách nút với nút trước */
+}
+
+/* Nếu nút đầu tiên không muốn margin */
+.header button:first-child {
+  margin-left: 0;
+}
+
+.header button:hover {
+  background-color: #6767a4;
+}
+
+.header span {
+  font-weight: 500;
+}
+.header span {
+  background-color: #425ab8;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #ffffff;
+  margin-left: 600px; /* tạo khoảng cách với nút */
+}

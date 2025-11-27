@@ -1,0 +1,36 @@
+.device-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.device-form input,
+.device-form select {
+  padding: 8px 10px;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.device-form input:focus,
+.device-form select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+}
+
+.device-form button {
+  padding: 8px 14px;
+  background: #007bff;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.device-form button:hover {
+  background: #0056b3;
+}

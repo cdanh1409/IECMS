@@ -1,6 +1,6 @@
-// Login.js
 import React, { useState } from "react";
 import axios from "axios";
+import "../styles/Login.css"; // import file CSS
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -22,76 +22,32 @@ function Login({ onLogin }) {
         password,
       });
 
-      // Gọi callback onLogin với dữ liệu user từ server
       onLogin(res.data);
-      alert(`Đăng nhập thành công! Chào ${res.data.USER_NAME}`);
+      alert(`Đăng nhập thành công! Chào ${res.data.FULL_NAME}`);
     } catch (err) {
       console.error("Login error:", err);
-      alert(
-        err.response?.data?.error || "Có lỗi xảy ra khi đăng nhập, thử lại"
-      );
+      alert(err.response?.data?.error || "Có lỗi xảy ra khi đăng nhập");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        background: "#f0f2f5",
-      }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          padding: 30,
-          background: "#fff",
-          borderRadius: 8,
-          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-          width: 300,
-        }}
-      >
-        <h2 style={{ textAlign: "center" }}>Login</h2>
+    <div className="login-container">
+      <form className="login-form" onSubmit={handleSubmit}>
+        <h2>Login</h2>
         <input
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          style={{
-            display: "block",
-            marginBottom: 10,
-            width: "100%",
-            padding: 8,
-          }}
         />
         <input
           placeholder="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{
-            display: "block",
-            marginBottom: 10,
-            width: "100%",
-            padding: 8,
-          }}
         />
-        <button
-          type="submit"
-          style={{
-            width: "100%",
-            padding: 10,
-            background: "#1890ff",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
-          disabled={loading}
-        >
+        <button type="submit" disabled={loading}>
           {loading ? "Đang đăng nhập..." : "Login"}
         </button>
       </form>
