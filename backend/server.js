@@ -71,8 +71,7 @@ app.get("/api/devices/user/:USER_ID", async (req, res) => {
     const result = await pool
       .request()
       .input("USER_ID", sql.Int, Number(USER_ID)).query(`
-        SELECT 
-          DEVICE_ID, DEVICE_NAME, ADDRESS, STATUS, USER_ID, kWh
+        SELECT DEVICE_ID, DEVICE_NAME, ADDRESS, STATUS, USER_ID, kWh
         FROM DEVICE
         WHERE USER_ID = @USER_ID
         ORDER BY DEVICE_ID
@@ -150,8 +149,7 @@ app.get("/api/user/:USER_ID", async (req, res) => {
     const result = await pool
       .request()
       .input("USER_ID", sql.Int, Number(USER_ID)).query(`
-        SELECT TOP (1000)
-          USER_ID, FULL_NAME, EMAIL, PHONE, ADDRESS, CREATED_AT, UPDATED_AT
+        SELECT TOP (1000) USER_ID, FULL_NAME, EMAIL, PHONE, ADDRESS, CREATED_AT, UPDATED_AT
         FROM USER_INFO
         WHERE USER_ID = @USER_ID
       `);
@@ -189,6 +187,50 @@ app.put("/api/user/:USER_ID", async (req, res) => {
     res.json(result.recordset[0]);
   } catch (err) {
     console.error("❌ Error updating user:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ----------------- POWER LOG ROUTES -----------------
+
+// GET power logs by user + optional date range
+app.get("/api/power-log/:USER_ID", async (req, res) => {
+  const { USER_ID } = req.params;
+  const { startDate, endDate } = req.query; // ISO string từ frontend
+
+  try {
+    const pool = await poolPromise;
+
+    let query = `
+      SELECT LOG_ID, DEVICE_ID, LABEL_NAME, VOLTAGE, AMPERAGE, POWER, CREATE_AT
+      FROM POWER_LOG
+      WHERE DEVICE_ID IN (
+        SELECT DEVICE_ID FROM DEVICE WHERE USER_ID = @USER_ID
+      )
+    `;
+
+    if (startDate && endDate) {
+      query += `
+        AND CREATE_AT >= @startDate
+        AND CREATE_AT <= @endDate
+      `;
+    }
+
+    query += ` ORDER BY CREATE_AT ASC`;
+
+    const request = pool.request().input("USER_ID", sql.Int, Number(USER_ID));
+
+    if (startDate && endDate) {
+      request
+        .input("startDate", sql.DateTime, new Date(startDate))
+        .input("endDate", sql.DateTime, new Date(endDate));
+    }
+
+    const result = await request.query(query);
+
+    res.json(result.recordset || []);
+  } catch (err) {
+    console.error("❌ Error fetching power logs:", err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/Dashboard.css";
 import { Bar, Line, Pie } from "react-chartjs-2";
-import { generateChartData } from "./chartData";
-
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,6 +32,7 @@ ChartJS.register(
   Legend
 );
 
+// Refresh options
 const REFRESH_OPTIONS = [
   { label: "2s", value: 2000 },
   { label: "5s", value: 5000 },
@@ -43,91 +48,171 @@ const REFRESH_OPTIONS = [
   { label: "24h", value: 86400000 },
 ];
 
-function Dashboard({ user, devices, setDevices, dashboardState, setDashboardState, fetchData }) {
-  const { timeRange, customRange, refreshInterval } = dashboardState;
-  const [localCustomRange, setLocalCustomRange] = useState(customRange);
-  const [highlightIndex, setHighlightIndex] = useState(null);
+// Chart data generator
+function generateChartData(devices, type = "bar") {
+  if (!devices || devices.length === 0) return { labels: [], datasets: [] };
+  const colors = devices.map((d) => d.color || "#007bff");
+
+  switch (type) {
+    case "line":
+      return {
+        labels: devices.map((d) => d.DEVICE_NAME),
+        datasets: [
+          {
+            label: "kWh",
+            data: devices.map((d) => d.kWh || 0),
+            borderColor: colors,
+            backgroundColor: "transparent",
+            tension: 0.3,
+            fill: false,
+          },
+        ],
+      };
+    case "pie":
+      return {
+        labels: devices.map((d) => d.DEVICE_NAME),
+        datasets: [
+          {
+            label: "kWh",
+            data: devices.map((d) => d.kWh || 0),
+            backgroundColor: colors,
+            borderColor: "#fff",
+            borderWidth: 1,
+          },
+        ],
+      };
+    case "bar":
+    default:
+      return {
+        labels: devices.map((d) => d.DEVICE_NAME),
+        datasets: [
+          {
+            label: "kWh",
+            data: devices.map((d) => d.kWh || 0),
+            backgroundColor: colors,
+            borderColor: colors,
+            borderWidth: 2,
+          },
+        ],
+      };
+  }
+}
+
+// Fetch devices from API
+async function fetchDevicesAPI(USER_ID) {
+  const res = await fetch(`http://localhost:5000/api/devices/user/${USER_ID}`);
+  if (!res.ok) throw new Error("Error fetching devices");
+  return res.json();
+}
+
+function Dashboard({ user }) {
+  const [devices, setDevices] = useState([]);
+  const [dashboardState, setDashboardState] = useState({
+    timeRange: "today",
+    customRange: [new Date(), new Date()],
+    refreshInterval: 5000,
+  });
   const [loading, setLoading] = useState(false);
   const intervalRef = useRef(null);
 
-  // Initialize localCustomRange
-  useEffect(() => {
-    const today = new Date();
-    setLocalCustomRange([today, today]);
-  }, []);
+  const { timeRange, customRange, refreshInterval } = dashboardState;
 
-  // Fetch devices function
+  // Fetch devices
   const fetchDevices = useCallback(async () => {
     if (!user?.USER_ID) return;
     setLoading(true);
+
     try {
-      const data = await fetchData(user.USER_ID);
-      const colored = data.map((d) => ({
+      let data = await fetchDevicesAPI(user.USER_ID);
+
+      // Filter by time range
+      const filtered = data.filter((d) => {
+        const deviceDate = new Date(d.CREATE_AT);
+
+        if (timeRange === "today") {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          return deviceDate >= today && deviceDate < tomorrow;
+        }
+
+        if (timeRange === "yesterday") {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          yesterday.setHours(0, 0, 0, 0);
+          const today = new Date(yesterday);
+          today.setDate(today.getDate() + 1);
+          return deviceDate >= yesterday && deviceDate < today;
+        }
+
+        if (timeRange === "custom" && customRange[0] && customRange[1]) {
+          const start = new Date(customRange[0]);
+          start.setHours(0, 0, 0, 0);
+          const dayAfterEnd = new Date(customRange[1]);
+          dayAfterEnd.setDate(dayAfterEnd.getDate() + 1);
+          dayAfterEnd.setHours(0, 0, 0, 0);
+          return deviceDate >= start && deviceDate < dayAfterEnd;
+        }
+
+        return true;
+      });
+
+      const colored = filtered.map((d, index) => ({
         ...d,
-        color: d.color || "#" + Math.floor(Math.random() * 16777215).toString(16),
+        color:
+          d.color || ["#007bff", "#28a745", "#ffc107", "#dc3545"][index % 4],
       }));
+
       setDevices(colored);
     } catch (err) {
-      console.error("❌ Dashboard fetch error:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [user, fetchData, setDevices]);
+  }, [user, timeRange, customRange]);
 
-  // Setup interval auto-refresh
-  const setupInterval = useCallback(() => {
+  // Fetch on mount or user change
+  useEffect(() => {
+    fetchDevices();
+  }, [fetchDevices]);
+
+  // Auto refresh
+  useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(fetchDevices, refreshInterval);
+    return () => clearInterval(intervalRef.current);
   }, [fetchDevices, refreshInterval]);
 
-  useEffect(() => {
-    if (!user?.USER_ID) return;
-    fetchDevices();
-    setupInterval();
-    return () => clearInterval(intervalRef.current);
-  }, [user, fetchDevices, refreshInterval, setupInterval]);
-
-  // Filter devices by timeRange / customRange
-  const filteredDevices = useMemo(() => {
-    if (!devices || devices.length === 0) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    return devices.filter((d) => {
-      const deviceDate = new Date(d.lastUpdate || d.CREATE_AT || new Date());
-      deviceDate.setHours(0, 0, 0, 0);
-
-      if (timeRange === "today") return deviceDate.getTime() === today.getTime();
-      if (timeRange === "yesterday") return deviceDate.getTime() === yesterday.getTime();
-      if (timeRange === "custom" && localCustomRange[0] && localCustomRange[1]) {
-        const start = new Date(localCustomRange[0]);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(localCustomRange[1]);
-        end.setHours(23, 59, 59, 999);
-        return deviceDate >= start && deviceDate <= end;
-      }
-      return true;
-    });
-  }, [devices, timeRange, localCustomRange]);
-
-  // Total kWh
   const totalKwh = useMemo(
-    () => filteredDevices.reduce((sum, d) => sum + (d.kWh || 0), 0),
-    [filteredDevices]
+    () => devices.reduce((sum, d) => sum + (d.kWh || 0), 0),
+    [devices]
   );
 
-  // Chart data
-  const barChartData = useMemo(() => generateChartData(filteredDevices, "bar"), [filteredDevices]);
-  const lineChartData = useMemo(() => generateChartData(filteredDevices, "line"), [filteredDevices]);
-  const pieChartData = useMemo(() => generateChartData(filteredDevices, "pie"), [filteredDevices]);
+  const barChartData = useMemo(
+    () => generateChartData(devices, "bar"),
+    [devices]
+  );
+  const lineChartData = useMemo(
+    () => generateChartData(devices, "line"),
+    [devices]
+  );
+  const pieChartData = useMemo(
+    () => generateChartData(devices, "pie"),
+    [devices]
+  );
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } },
+  };
 
   return (
     <div className="dashboard">
-      {/* Controls */}
       <div className="dashboard-controls">
-        <div>
+        <div className="control-group">
           <label>Time:</label>
           <select
             value={timeRange}
@@ -143,23 +228,26 @@ function Dashboard({ user, devices, setDevices, dashboardState, setDashboardStat
 
         {timeRange === "custom" && (
           <DatePicker
+            className="datepicker"
             selectsRange
-            startDate={localCustomRange[0]}
-            endDate={localCustomRange[1]}
-            onChange={(range) => {
-              setLocalCustomRange(range);
-              setDashboardState((p) => ({ ...p, customRange: range }));
-            }}
+            startDate={customRange[0]}
+            endDate={customRange[1]}
+            onChange={(range) =>
+              setDashboardState((p) => ({ ...p, customRange: range }))
+            }
             isClearable
           />
         )}
 
-        <div>
+        <div className="control-group">
           <label>Refresh:</label>
           <select
             value={refreshInterval}
             onChange={(e) =>
-              setDashboardState((p) => ({ ...p, refreshInterval: Number(e.target.value) }))
+              setDashboardState((p) => ({
+                ...p,
+                refreshInterval: Number(e.target.value),
+              }))
             }
           >
             {REFRESH_OPTIONS.map((o) => (
@@ -170,93 +258,32 @@ function Dashboard({ user, devices, setDevices, dashboardState, setDashboardStat
           </select>
         </div>
 
-        <button type="button" onClick={fetchDevices} disabled={loading}>
-          {loading ? "Loading..." : "Refresh Now"}
+        <button
+          className="refresh-button"
+          onClick={fetchDevices}
+          disabled={loading}
+        >
+          {loading ? <div className="spinner" /> : "Refresh"}
         </button>
       </div>
 
-      {/* Summary */}
       <div className="dashboard-summary">
         <h4>Tổng năng lượng</h4>
         <p>{totalKwh} kWh</p>
       </div>
 
-      {/* Legend */}
-      <div className="dashboard-legend">
-        {filteredDevices.map((d, idx) => (
-          <div
-            key={d.DEVICE_ID}
-            className={`legend-item ${highlightIndex === idx ? "active" : ""}`}
-            onClick={() => setHighlightIndex(highlightIndex === idx ? null : idx)}
-          >
-            <span className="legend-color" style={{ backgroundColor: d.color }}></span>
-            <span className="legend-label">{d.DEVICE_NAME}</span>
-            <span className="legend-kwh">{d.kWh} kWh</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Charts */}
       <div className="dashboard-charts">
         <div className="chart-card">
           <div className="chart-title">Biểu đồ cột</div>
-          <Bar
-            data={{
-              ...barChartData,
-              datasets: barChartData.datasets.map((ds, idx) => ({
-                ...ds,
-                backgroundColor:
-                  highlightIndex === null
-                    ? ds.backgroundColor
-                    : idx === highlightIndex
-                    ? ds.backgroundColor
-                    : "rgba(200,200,200,0.3)",
-              })),
-            }}
-            options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }}
-          />
+          <Bar data={barChartData} options={chartOptions} />
         </div>
-
         <div className="chart-card">
           <div className="chart-title">Biểu đồ đường</div>
-          <Line
-            data={{
-              ...lineChartData,
-              datasets: lineChartData.datasets.map((ds, idx) => ({
-                ...ds,
-                borderColor:
-                  highlightIndex === null
-                    ? ds.borderColor
-                    : idx === highlightIndex
-                    ? ds.borderColor
-                    : "rgba(200,200,200,0.3)",
-                backgroundColor:
-                  highlightIndex === null
-                    ? ds.backgroundColor
-                    : idx === highlightIndex
-                    ? ds.backgroundColor
-                    : "rgba(200,200,200,0.1)",
-              })),
-            }}
-            options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }}
-          />
+          <Line data={lineChartData} options={chartOptions} />
         </div>
-
         <div className="chart-card">
           <div className="chart-title">Biểu đồ tròn</div>
-          <Pie
-            data={{
-              ...pieChartData,
-              datasets: pieChartData.datasets.map((ds) => ({
-                ...ds,
-                backgroundColor:
-                  highlightIndex === null
-                    ? ds.backgroundColor
-                    : ds.backgroundColor.map((c, i) => (i === highlightIndex ? c : "rgba(200,200,200,0.3)")),
-              })),
-            }}
-            options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }}
-          />
+          <Pie data={pieChartData} options={chartOptions} />
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-// chartData.js
 /**
  * Tạo chart data cho Chart.js từ devices
  * @param {Array} devices - danh sách devices đã filter
@@ -10,9 +9,8 @@ export const generateChartData = (devices, type = "bar") => {
     return { labels: [], datasets: [] };
   }
 
-  const colors = devices.map(
-    (d) => d.color || "#" + Math.floor(Math.random() * 16777215).toString(16)
-  );
+  // Màu cố định: nếu device.color đã có thì dùng, nếu chưa có thì gán 1 màu mặc định
+  const colors = devices.map((d) => d.color || "#007bff");
 
   switch (type) {
     case "line":
@@ -21,7 +19,7 @@ export const generateChartData = (devices, type = "bar") => {
         datasets: [
           {
             label: "kWh",
-            data: devices.map((d) => d.kWh || 0),
+            data: devices.map((d) => d.kWh || 0), // dùng kWh
             borderColor: colors,
             backgroundColor: "transparent",
             tension: 0.3,

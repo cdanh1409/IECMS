@@ -1,13 +1,18 @@
-/* Dashboard.css */
-
+/* =========================
+   Layout chung
+========================= */
 .dashboard {
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f6fa;
 }
 
-/* Time + Refresh controls */
+/* =========================
+   CONTROL BAR
+========================= */
 .dashboard-controls {
   display: flex;
   gap: 16px;
@@ -15,30 +20,98 @@
   align-items: center;
 }
 
-.dashboard-controls label {
-  margin-right: 6px;
+/* Group chứa Label + Select */
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* Tổng kWh card */
+/* Đồng bộ chiều cao select, button, datepicker */
+.dashboard-controls select,
+.dashboard-controls button,
+.datepicker {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  outline: none;
+}
+
+/* Datepicker custom */
+.datepicker {
+  min-width: 200px;
+}
+
+/* =========================
+   BUTTON REFRESH
+========================= */
+.refresh-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* Khoảng cách icon & text */
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background-color: #0069d9;
+}
+
+.refresh-button:disabled {
+  background-color: #f3f3f3;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+/* Spinner trong button */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================
+   SUMMARY CARD
+========================= */
 .dashboard-summary {
   background-color: #fff;
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
 }
 
 .dashboard-summary h4 {
-  margin: 0 0 10px 0;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .dashboard-summary p {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: bold;
   margin: 0;
 }
 
-/* Charts layout */
+/* =========================
+   CHARTS
+========================= */
 .dashboard-charts {
   display: flex;
   flex-wrap: wrap;
@@ -46,111 +119,25 @@
 }
 
 .chart-card {
-  flex: 1 1 400px;
+  flex: 1 1 400px; /* min-width 400px, auto grow */
   height: 300px;
   background-color: #fff;
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
-.chart-card.small {
-  flex: 1 1 300px;
-}
-
-.chart-card h4 {
+.chart-title {
   margin-bottom: 12px;
-}
-/* Mobile tweaks */
-@media (max-width: 500px) {
-  .dashboard-cards {
-    grid-template-columns: 1fr;
-  }
-}
-.dashboard-controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-}
-
-.dashboard-controls .controls-left {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  flex: 1; /* chiếm hết không gian còn lại */
-}
-
-.dashboard-controls label {
+  font-size: 16px;
   font-weight: 600;
-  font-size: 14px;
 }
 
-.dashboard-controls select,
-.dashboard-controls input,
-.dashboard-controls .total-kwh {
-  min-width: 100px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.dashboard-controls .total-kwh {
-  font-weight: bold;
-  color: #007bff;
-  border: none;
-  background: none;
-  cursor: default;
-}
-
-.dashboard-controls button {
-  height: 38px;
-  padding: 6px 14px;
-  background-color: #007bff;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, transform 0.1s;
-}
-
-.dashboard-controls button:hover {
-  background-color: #0056b3;
-  transform: translateY(-1px);
-}
-
-/* Mobile */
-@media (max-width: 1024px) {
-  .dashboard-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .dashboard-controls .controls-left,
-  .dashboard-controls button {
-    width: 100%;
-  }
-
-  .dashboard-controls select,
-  .dashboard-controls input,
-  .dashboard-controls .total-kwh,
-  .dashboard-controls button {
-    height: 36px;
-    font-size: 13px;
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 500px) {
+  .chart-card {
+    flex: 1 1 100%;
   }
 }
