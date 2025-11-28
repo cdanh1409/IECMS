@@ -1,16 +1,31 @@
-/* Header.css */
 .header {
   display: flex;
-  justify-content: space-between; /* hoặc flex-start */
+  justify-content: space-between; /* các item co giãn theo container */
   align-items: center;
-  gap: 12px; /* khoảng cách giữa các item */
+  gap: 12px;
   height: 60px;
   padding: 0 20px;
   background-color: #ffffff;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 4px solid #ddd;
   box-sizing: border-box;
+  flex-wrap: wrap; /* xuống dòng nếu quá nhỏ */
 }
 
+.header-left {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto; /* đẩy sang phải tự động */
+}
+.header-buttons {
+  margin-left: auto; /* đẩy các nút sang phải */
+}
 .header button {
   padding: 12px 24px;
   border: none;
@@ -20,12 +35,6 @@
   color: white;
   font-size: 14px;
   transition: background-color 0.2s;
-  margin-left: 10px; /* khoảng cách nút với nút trước */
-}
-
-/* Nếu nút đầu tiên không muốn margin */
-.header button:first-child {
-  margin-left: 0;
 }
 
 .header button:hover {
@@ -33,13 +42,30 @@
 }
 
 .header span {
-  font-weight: 500;
-}
-.header span {
   background-color: #425ab8;
   padding: 6px 12px;
   border-radius: 4px;
   font-weight: 500;
   color: #ffffff;
-  margin-left: 600px; /* tạo khoảng cách với nút */
+  white-space: nowrap;
+}
+
+/* Responsive nhỏ hơn 600px */
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    gap: 8px;
+  }
+
+  .header-right {
+    margin-left: 0;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .header span {
+    max-width: 100%;
+  }
 }

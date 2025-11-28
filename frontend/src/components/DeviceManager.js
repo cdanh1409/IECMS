@@ -20,7 +20,7 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
     ADDRESS: addresses[0],
   });
 
-  // Load device
+  // Load devices
   useEffect(() => {
     if (!user?.USER_ID) return;
     const fetchDevices = async () => {
@@ -30,11 +30,9 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
         );
         const result = res.data.map((d) => ({
           ...d,
-          color:
-            d.color || "#" + Math.floor(Math.random() * 16777215).toString(16),
+          color: "#" + Math.floor(Math.random() * 16777215).toString(16),
           kWh: Number(d.kWh ?? 0),
         }));
-
         setDevices(result);
         onDevicesUpdate && onDevicesUpdate(result);
       } catch (err) {
@@ -50,23 +48,19 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
       alert("Vui lòng điền đầy đủ thông tin");
       return;
     }
-
     try {
       const res = await axios.post("http://localhost:5000/api/devices", {
         ...form,
         kWh: Number(form.kWh),
         USER_ID: Number(user.USER_ID),
       });
-
       const newDevice = {
         ...res.data,
         color: "#" + Math.floor(Math.random() * 16777215).toString(16),
       };
-
       const updated = [...devices, newDevice];
       setDevices(updated);
       onDevicesUpdate && onDevicesUpdate(updated);
-
       setForm({
         DEVICE_NAME: "",
         ADDRESS: addresses[0],
@@ -76,18 +70,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
     } catch (err) {
       console.error("Error adding device:", err);
       alert("Lỗi khi thêm thiết bị");
-    }
-  };
-
-  // Delete device
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/devices/${id}`);
-      const updated = devices.filter((d) => d.DEVICE_ID !== id);
-      setDevices(updated);
-      onDevicesUpdate && onDevicesUpdate(updated);
-    } catch (err) {
-      alert("Xóa thất bại");
     }
   };
 
@@ -108,9 +90,7 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
         `http://localhost:5000/api/devices/${id}`,
         editData
       );
-
       const updated = devices.map((d) => (d.DEVICE_ID === id ? res.data : d));
-
       setDevices(updated);
       onDevicesUpdate && onDevicesUpdate(updated);
       setEditingId(null);
@@ -124,7 +104,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
       {/* FORM */}
       <div className="device-form">
         <h3>Thêm thiết bị mới</h3>
-
         <input
           className="device-input"
           type="text"
@@ -132,7 +111,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
           value={form.DEVICE_NAME}
           onChange={(e) => setForm({ ...form, DEVICE_NAME: e.target.value })}
         />
-
         <select
           className="device-select"
           value={form.ADDRESS}
@@ -142,7 +120,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
             <option key={a}>{a}</option>
           ))}
         </select>
-
         <select
           className="device-select"
           value={form.STATUS}
@@ -151,7 +128,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
           <option>ON</option>
           <option>OFF</option>
         </select>
-
         <input
           className="device-input"
           type="number"
@@ -159,7 +135,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
           value={form.kWh}
           onChange={(e) => setForm({ ...form, kWh: e.target.value })}
         />
-
         <button className="device-add-btn" onClick={handleAddDevice}>
           Thêm thiết bị
         </button>
@@ -185,7 +160,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
                     setEditData({ ...editData, kWh: Number(e.target.value) })
                   }
                 />
-
                 <select
                   className="device-edit-select"
                   value={editData.STATUS}
@@ -196,7 +170,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
                   <option>ON</option>
                   <option>OFF</option>
                 </select>
-
                 <select
                   className="device-edit-select"
                   value={editData.ADDRESS}
@@ -208,7 +181,6 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
                     <option key={a}>{a}</option>
                   ))}
                 </select>
-
                 <button
                   className="device-btn"
                   onClick={() => saveEdit(d.DEVICE_ID)}
@@ -238,15 +210,8 @@ export default function DeviceManager({ user, onDevicesUpdate }) {
                 <p>
                   <strong>kWh:</strong> {d.kWh}
                 </p>
-
                 <button className="device-btn" onClick={() => startEdit(d)}>
                   ✏️ Sửa
-                </button>
-                <button
-                  className="device-btn"
-                  onClick={() => handleDelete(d.DEVICE_ID)}
-                >
-                  ❌ Xóa
                 </button>
               </>
             )}

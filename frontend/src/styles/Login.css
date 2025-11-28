@@ -1,29 +1,37 @@
+/* Container chính, căn giữa màn hình */
 .login-container {
   width: 90%;
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 25px;
+  max-width: 450px; /* to hơn trước */
+  margin: auto; /* tự căn giữa */
+  position: absolute; /* để căn giữa theo cả trục y */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 30px; /* padding to hơn */
   background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  border-radius: 14px; /* bo tròn hơn */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* shadow mềm hơn */
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px;
 }
 
+/* Tiêu đề form */
 .login-form h2 {
   text-align: center;
-  font-size: 24px;
+  font-size: 26px; /* to hơn */
   color: #271112;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  font-weight: 600;
 }
 
+/* Input */
 .login-form input {
   width: 100%;
-  padding: 12px 10px;
+  padding: 14px 12px; /* input to hơn */
   border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 15px; /* chữ to hơn */
   box-sizing: border-box;
   transition: border 0.2s;
 }
@@ -33,15 +41,16 @@
   outline: none;
 }
 
+/* Button */
 .login-form button {
   width: 100%;
-  padding: 12px 0;
+  padding: 14px 0; /* button cao hơn */
   background-color: #3b82f6;
   color: #fff;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: 0.2s;
 }
@@ -58,11 +67,17 @@
 /* Mobile tweaks */
 @media (max-width: 500px) {
   .login-container {
-    padding: 20px;
-    margin: 20px auto;
+    width: 95%;
+    padding: 25px;
   }
 
   .login-form h2 {
-    font-size: 20px;
+    font-size: 22px;
+  }
+
+  .login-form input,
+  .login-form button {
+    font-size: 14px;
+    padding: 12px 10px;
   }
 }

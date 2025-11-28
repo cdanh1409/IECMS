@@ -1,5 +1,5 @@
 .user-info-container {
-  max-width: 500px;
+  max-width: 600px;
   margin: 30px auto;
   padding: 25px;
   background-color: #fff;
@@ -24,8 +24,7 @@
   color: #4b5563;
 }
 
-.user-info-container input,
-.user-info-container select {
+.user-info-container input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #d1d5db;
@@ -35,8 +34,7 @@
   transition: border 0.2s;
 }
 
-.user-info-container input:focus,
-.user-info-container select:focus {
+.user-info-container input:focus {
   border-color: #3b82f6;
   outline: none;
 }
@@ -47,13 +45,14 @@
   gap: 10px;
 }
 
-.address-row select {
-  flex: 1 1 100%;
+.address-row input {
+  flex: 1 1 120px; /* mỗi ô co dãn */
+  min-width: 100px;
 }
 
-@media (min-width: 480px) {
-  .address-row select {
-    flex: 1;
+@media (max-width: 480px) {
+  .address-row input {
+    flex: 1 1 100%;
   }
 }
 
@@ -82,21 +81,12 @@
 }
 
 .button-row .save-btn {
-  background-color: #10b981;
+  background-color: #007bff;
   color: #fff;
 }
 
 .button-row .save-btn:hover {
-  background-color: #059669;
-}
-
-.button-row .cancel-btn {
-  background-color: #f87171;
-  color: #fff;
-}
-
-.button-row .cancel-btn:hover {
-  background-color: #ef4444;
+  background-color: #005fcc;
 }
 
 .user-info-container input[readonly] {

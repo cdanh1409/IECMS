@@ -18,7 +18,7 @@
 .device-form select:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
 }
 
 .device-form button {

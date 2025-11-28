@@ -1,58 +1,110 @@
-.setting-container {
-  max-width: 500px;
-  margin: 20px auto;
-  padding: 25px;
-  background-color: #fff;
+/* ===== FORM CONTAINER ===== */
+.setting-container,
+.login-container {
+  max-width: 420px;
+  width: 90%;
+  margin: 0 auto;
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
   border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
 }
 
-.setting-container h2 {
+/* ===== HEADERS ===== */
+.setting-container h2,
+.login-container h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: #271112;
   font-size: 22px;
+}
+
+/* ===== FORM ===== */
+.setting-container form,
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Label */
+label {
   font-weight: 600;
-}
-
-.setting-container label {
-  font-weight: 500;
-  font-size: 14px;
-  color: #4b5563;
+  margin-bottom: -3px;
   display: block;
-  margin-bottom: 4px;
 }
 
-.setting-container input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
+/* Input */
+input {
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ccc;
   border-radius: 8px;
-  font-size: 14px;
-  box-sizing: border-box;
-  transition: border 0.2s;
-}
-
-.setting-container input:focus {
-  border-color: #3b82f6;
+  width: 100%;
   outline: none;
-}
-
-.setting-container button {
-  width: 100%;
-  padding: 12px 0;
-  background-color: #3b82f6;
-  color: #fff;
-  font-weight: 500;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
   transition: 0.2s;
 }
 
-.setting-container button:hover {
-  background-color: #2563eb;
+input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px #007bff66;
+}
+
+/* Error */
+.error {
+  color: red;
+  margin-left: 5px;
+  font-size: 13px;
+}
+
+/* ===== Button ===== */
+button,
+.save-btn {
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.25s;
+}
+
+button:hover,
+.save-btn:hover {
+  background: #005fcc;
+}
+
+button:disabled {
+  background: gray;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Mobile dưới 480px */
+@media (max-width: 480px) {
+  .setting-container,
+  .login-container {
+    width: 92%;
+    padding: 18px;
+    margin-top: 20px;
+  }
+
+  input,
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  h2 {
+    font-size: 20px !important;
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .setting-container,
+  .login-container {
+    width: 95%;
+  }
 }

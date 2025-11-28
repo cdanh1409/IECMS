@@ -1,16 +1,14 @@
-[
-  {
-    "label": "Hà Nội",
-    "districts": [
-      { "label": "Ba Đình", "wards": ["Phường 1", "Phường 2"] },
-      { "label": "Hoàn Kiếm", "wards": ["Phường 3", "Phường 4"] }
-    ]
-  },
-  {
-    "label": "Hồ Chí Minh",
-    "districts": [
-      { "label": "Quận 1", "wards": ["Phường Bến Nghé", "Phường Bến Thành"] },
-      { "label": "Quận 3", "wards": ["Phường Võ Thị Sáu", "Phường 6"] }
-    ]
-  }
-]
+{
+  "provinces": [
+    { "code": "01", "name": "Hà Nội" },
+    { "code": "02", "name": "Hồ Chí Minh" }
+  ],
+  "districts": [
+    { "code": "001", "name": "Quận Ba Đình", "provinceCode": "01" },
+    { "code": "002", "name": "Quận Hoàn Kiếm", "provinceCode": "01" }
+  ],
+  "wards": [
+    { "code": "0001", "name": "Phường Trúc Bạch", "districtCode": "001" },
+    { "code": "0002", "name": "Phường Ngọc Hà", "districtCode": "001" }
+  ]
+}

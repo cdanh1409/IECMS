@@ -1,41 +1,49 @@
-// UserInfo.js
 import React, { useState, useEffect } from "react";
-import "../styles/Setting.css"; // Dùng lại CSS Setting cho form đẹp
-import { API_URL } from "../config";
+import "../styles/UserInfo.css";
 
 function UserInfo({ userId }) {
   const [form, setForm] = useState({
     FULL_NAME: "",
     EMAIL: "",
     PHONE: "",
-    ADDRESS: "",
+    CITY: "",
+    DISTRICT: "",
+    WARD: "",
+    STREET: "",
+    FULL_ADDRESS: "",
   });
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
+  // Load user info
   useEffect(() => {
     if (!userId) return;
 
     const fetchUser = async () => {
       try {
         setLoading(true);
-        setError(null);
-        const res = await fetch(`${API_URL}/api/user/${userId}`);
+        const res = await fetch(`http://localhost:5000/api/user/${userId}`);
         const data = await res.json();
-        if (!res.ok)
-          throw new Error(data.error || "Không thể tải thông tin user");
+        if (!res.ok) throw new Error(data.error || "Không thể tải user");
 
+        // Giả sử địa chỉ backend lưu dạng 1 string, tách ra
+        const addrParts = (data.ADDRESS || "").split(",").map((s) => s.trim());
         setForm({
           FULL_NAME: data.FULL_NAME || "",
           EMAIL: data.EMAIL || "",
           PHONE: data.PHONE || "",
-          ADDRESS: data.ADDRESS || "",
+          CITY: addrParts[0] || "",
+          DISTRICT: addrParts[1] || "",
+          WARD: addrParts[2] || "",
+          STREET: addrParts[3] || "",
+          FULL_ADDRESS: data.ADDRESS || "",
         });
       } catch (err) {
         console.error(err);
-        setError(err.message || "Lỗi khi load user");
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -44,8 +52,13 @@ function UserInfo({ userId }) {
     fetchUser();
   }, [userId]);
 
-  if (loading) return <div>Đang tải thông tin user...</div>;
-  if (error) return <div style={{ color: "red" }}>Lỗi: {error}</div>;
+  // Cập nhật FULL_ADDRESS khi bất cứ ô nào thay đổi
+  useEffect(() => {
+    const parts = [form.STREET, form.WARD, form.DISTRICT, form.CITY]
+      .filter(Boolean)
+      .join(", ");
+    setForm((f) => ({ ...f, FULL_ADDRESS: parts }));
+  }, [form.STREET, form.WARD, form.DISTRICT, form.CITY]);
 
   const validate = () => {
     const errs = {};
@@ -53,7 +66,10 @@ function UserInfo({ userId }) {
       errs.FULL_NAME = "Họ và tên không được để trống";
     if (!form.EMAIL.trim()) errs.EMAIL = "Email không được để trống";
     if (!form.PHONE.trim()) errs.PHONE = "Số điện thoại không được để trống";
-    if (!form.ADDRESS.trim()) errs.ADDRESS = "Địa chỉ không được để trống";
+    if (!form.CITY) errs.CITY = "Chọn Thành phố/Tỉnh";
+    if (!form.DISTRICT) errs.DISTRICT = "Chọn Quận/Huyện";
+    if (!form.WARD) errs.WARD = "Chọn Phường/Xã";
+    if (!form.STREET.trim()) errs.STREET = "Nhập đường/số nhà";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -64,32 +80,39 @@ function UserInfo({ userId }) {
 
     try {
       setSaving(true);
-      setError(null);
-      const res = await fetch(`${API_URL}/api/user/${userId}`, {
+      const payload = {
+        FULL_NAME: form.FULL_NAME,
+        EMAIL: form.EMAIL,
+        PHONE: form.PHONE,
+        ADDRESS: form.FULL_ADDRESS,
+      };
+      const res = await fetch(`http://localhost:5000/api/user/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Cập nhật thất bại");
       alert("Cập nhật thông tin thành công!");
     } catch (err) {
       console.error(err);
-      setError(err.message);
       alert(err.message);
     } finally {
       setSaving(false);
     }
   };
 
+  if (loading) return <div>Đang tải thông tin user...</div>;
+  if (error) return <div style={{ color: "red" }}>Lỗi: {error}</div>;
+
   return (
-    <div className="setting-container">
+    <div className="user-info-container">
       <h2>Thông tin User</h2>
       <form onSubmit={handleSubmit}>
         <label>
           Họ và tên
           {errors.FULL_NAME && (
-            <span className="error visible">{errors.FULL_NAME}</span>
+            <span className="error">{errors.FULL_NAME}</span>
           )}
         </label>
         <input
@@ -100,9 +123,7 @@ function UserInfo({ userId }) {
 
         <label>
           Email
-          {errors.EMAIL && (
-            <span className="error visible">{errors.EMAIL}</span>
-          )}
+          {errors.EMAIL && <span className="error">{errors.EMAIL}</span>}
         </label>
         <input
           type="email"
@@ -112,9 +133,7 @@ function UserInfo({ userId }) {
 
         <label>
           Số điện thoại
-          {errors.PHONE && (
-            <span className="error visible">{errors.PHONE}</span>
-          )}
+          {errors.PHONE && <span className="error">{errors.PHONE}</span>}
         </label>
         <input
           type="text"
@@ -122,19 +141,38 @@ function UserInfo({ userId }) {
           onChange={(e) => setForm({ ...form, PHONE: e.target.value })}
         />
 
-        <label>
-          Địa chỉ
-          {errors.ADDRESS && (
-            <span className="error visible">{errors.ADDRESS}</span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={form.ADDRESS}
-          onChange={(e) => setForm({ ...form, ADDRESS: e.target.value })}
-        />
+        <label>Địa chỉ</label>
+        <div className="address-row">
+          <input
+            type="text"
+            placeholder="Đường/Số nhà"
+            value={form.STREET}
+            onChange={(e) => setForm({ ...form, STREET: e.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Phường/Xã"
+            value={form.WARD}
+            onChange={(e) => setForm({ ...form, WARD: e.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Quận/Huyện"
+            value={form.DISTRICT}
+            onChange={(e) => setForm({ ...form, DISTRICT: e.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Thành phố/Tỉnh"
+            value={form.CITY}
+            onChange={(e) => setForm({ ...form, CITY: e.target.value })}
+          />
+        </div>
 
-        <div className="form-actions">
+        <label>Địa chỉ đầy đủ</label>
+        <input type="text" value={form.FULL_ADDRESS} readOnly />
+
+        <div className="button-row">
           <button type="submit" className="save-btn" disabled={saving}>
             {saving ? "Đang cập nhật..." : "Cập nhật"}
           </button>
