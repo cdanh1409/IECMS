@@ -8,6 +8,7 @@ import React, {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/Dashboard.css";
+import "../styles/Charts.css";
 import { Bar, Line, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -20,6 +21,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { generateChartData } from "./chartData.js";
 
 ChartJS.register(
   CategoryScale,
@@ -32,7 +34,6 @@ ChartJS.register(
   Legend
 );
 
-// Refresh options
 const REFRESH_OPTIONS = [
   { label: "2s", value: 2000 },
   { label: "5s", value: 5000 },
@@ -48,59 +49,15 @@ const REFRESH_OPTIONS = [
   { label: "24h", value: 86400000 },
 ];
 
-// Chart data generator
-function generateChartData(devices, type = "bar") {
-  if (!devices || devices.length === 0) return { labels: [], datasets: [] };
-  const colors = devices.map((d) => d.color || "#007bff");
-
-  switch (type) {
-    case "line":
-      return {
-        labels: devices.map((d) => d.DEVICE_NAME),
-        datasets: [
-          {
-            label: "kWh",
-            data: devices.map((d) => d.kWh || 0),
-            borderColor: colors,
-            backgroundColor: "transparent",
-            tension: 0.3,
-            fill: false,
-          },
-        ],
-      };
-    case "pie":
-      return {
-        labels: devices.map((d) => d.DEVICE_NAME),
-        datasets: [
-          {
-            label: "kWh",
-            data: devices.map((d) => d.kWh || 0),
-            backgroundColor: colors,
-            borderColor: "#fff",
-            borderWidth: 1,
-          },
-        ],
-      };
-    case "bar":
-    default:
-      return {
-        labels: devices.map((d) => d.DEVICE_NAME),
-        datasets: [
-          {
-            label: "kWh",
-            data: devices.map((d) => d.kWh || 0),
-            backgroundColor: colors,
-            borderColor: colors,
-            borderWidth: 2,
-          },
-        ],
-      };
-  }
-}
-
-// Fetch devices from API
-async function fetchDevicesAPI(USER_ID) {
-  const res = await fetch(`http://localhost:5000/api/devices/user/${USER_ID}`);
+// --------- API fetch ---------
+async function fetchDevicesAPI(USER_ID, startDate, endDate) {
+  const query = [];
+  if (startDate) query.push(`startDate=${encodeURIComponent(startDate)}`);
+  if (endDate) query.push(`endDate=${encodeURIComponent(endDate)}`);
+  const qs = query.length ? `?${query.join("&")}` : "";
+  const res = await fetch(
+    `http://localhost:5000/api/devices/user/${USER_ID}/devices${qs}`
+  );
   if (!res.ok) throw new Error("Error fetching devices");
   return res.json();
 }
@@ -114,103 +71,99 @@ function Dashboard({ user }) {
   });
   const [loading, setLoading] = useState(false);
   const intervalRef = useRef(null);
-
   const { timeRange, customRange, refreshInterval } = dashboardState;
 
-  // Fetch devices
+  const toUTCISOString = (date) => {
+    const offsetMs = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offsetMs).toISOString();
+  };
+
+  // --------- tính date range ---------
+  const getDateRange = useCallback(() => {
+    let startDate, endDate;
+    if (timeRange === "today") {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
+      startDate = toUTCISOString(start);
+      endDate = toUTCISOString(end);
+    } else if (timeRange === "yesterday") {
+      const start = new Date();
+      start.setDate(start.getDate() - 1);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      end.setDate(end.getDate() - 1);
+      end.setHours(23, 59, 59, 999);
+      startDate = toUTCISOString(start);
+      endDate = toUTCISOString(end);
+    } else if (timeRange === "custom" && customRange[0] && customRange[1]) {
+      const start = new Date(customRange[0]);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(customRange[1]);
+      end.setHours(23, 59, 59, 999);
+      startDate = toUTCISOString(start);
+      endDate = toUTCISOString(end);
+    }
+    return { startDate, endDate };
+  }, [timeRange, customRange]);
+
+  // --------- fetch devices ---------
   const fetchDevices = useCallback(async () => {
     if (!user?.USER_ID) return;
     setLoading(true);
-
     try {
-      let data = await fetchDevicesAPI(user.USER_ID);
-
-      // Filter by time range
-      const filtered = data.filter((d) => {
-        const deviceDate = new Date(d.CREATE_AT);
-
-        if (timeRange === "today") {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const tomorrow = new Date(today);
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          return deviceDate >= today && deviceDate < tomorrow;
-        }
-
-        if (timeRange === "yesterday") {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          yesterday.setHours(0, 0, 0, 0);
-          const today = new Date(yesterday);
-          today.setDate(today.getDate() + 1);
-          return deviceDate >= yesterday && deviceDate < today;
-        }
-
-        if (timeRange === "custom" && customRange[0] && customRange[1]) {
-          const start = new Date(customRange[0]);
-          start.setHours(0, 0, 0, 0);
-          const dayAfterEnd = new Date(customRange[1]);
-          dayAfterEnd.setDate(dayAfterEnd.getDate() + 1);
-          dayAfterEnd.setHours(0, 0, 0, 0);
-          return deviceDate >= start && deviceDate < dayAfterEnd;
-        }
-
-        return true;
-      });
-
-      const colored = filtered.map((d, index) => ({
-        ...d,
-        color:
-          d.color || ["#007bff", "#28a745", "#ffc107", "#dc3545"][index % 4],
-      }));
-
-      setDevices(colored);
+      const { startDate, endDate } = getDateRange();
+      const data = await fetchDevicesAPI(user.USER_ID, startDate, endDate);
+      setDevices(data);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [user, timeRange, customRange]);
+  }, [user, getDateRange]);
 
-  // Fetch on mount or user change
+  // --------- auto fetch on mount ---------
   useEffect(() => {
     fetchDevices();
   }, [fetchDevices]);
 
-  // Auto refresh
+  // --------- refresh interval ---------
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(fetchDevices, refreshInterval);
     return () => clearInterval(intervalRef.current);
   }, [fetchDevices, refreshInterval]);
 
-  const totalKwh = useMemo(
-    () => devices.reduce((sum, d) => sum + (d.kWh || 0), 0),
-    [devices]
-  );
-
-  const barChartData = useMemo(
+  // --------- chart data ---------
+  const chartDataBar = useMemo(
     () => generateChartData(devices, "bar"),
     [devices]
   );
-  const lineChartData = useMemo(
+  const chartDataLine = useMemo(
     () => generateChartData(devices, "line"),
     [devices]
   );
-  const pieChartData = useMemo(
+  const chartDataPie = useMemo(
     () => generateChartData(devices, "pie"),
+    [devices]
+  );
+
+  const totalKwh = useMemo(
+    () => devices.reduce((sum, d) => sum + (d.totalKWh || 0), 0),
     [devices]
   );
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: { legend: { display: true } },
     scales: { y: { beginAtZero: true } },
   };
 
   return (
     <div className="dashboard">
+      {/* Controls */}
       <div className="dashboard-controls">
         <div className="control-group">
           <label>Time:</label>
@@ -225,7 +178,6 @@ function Dashboard({ user }) {
             <option value="custom">Tùy chỉnh</option>
           </select>
         </div>
-
         {timeRange === "custom" && (
           <DatePicker
             className="datepicker"
@@ -238,7 +190,6 @@ function Dashboard({ user }) {
             isClearable
           />
         )}
-
         <div className="control-group">
           <label>Refresh:</label>
           <select
@@ -257,7 +208,6 @@ function Dashboard({ user }) {
             ))}
           </select>
         </div>
-
         <button
           className="refresh-button"
           onClick={fetchDevices}
@@ -267,23 +217,25 @@ function Dashboard({ user }) {
         </button>
       </div>
 
+      {/* Summary */}
       <div className="dashboard-summary">
         <h4>Tổng năng lượng</h4>
-        <p>{totalKwh} kWh</p>
+        <p>{totalKwh.toFixed(2)} kWh</p>
       </div>
 
+      {/* Charts */}
       <div className="dashboard-charts">
         <div className="chart-card">
-          <div className="chart-title">Biểu đồ cột</div>
-          <Bar data={barChartData} options={chartOptions} />
+          <div className="chart-title">Biểu đồ cột (Mỗi device)</div>
+          <Bar data={chartDataBar} options={chartOptions} />
         </div>
         <div className="chart-card">
-          <div className="chart-title">Biểu đồ đường</div>
-          <Line data={lineChartData} options={chartOptions} />
+          <div className="chart-title">Biểu đồ đường (Mỗi device)</div>
+          <Line data={chartDataLine} options={chartOptions} />
         </div>
         <div className="chart-card">
-          <div className="chart-title">Biểu đồ tròn</div>
-          <Pie data={pieChartData} options={chartOptions} />
+          <div className="chart-title">Biểu đồ tròn (Mỗi device)</div>
+          <Pie data={chartDataPie} options={chartOptions} />
         </div>
       </div>
     </div>
